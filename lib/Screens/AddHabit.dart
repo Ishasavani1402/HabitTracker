@@ -1,98 +1,124 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:habittracker/database/DB_helper.dart';
+  import 'package:flutter/cupertino.dart';
+  import 'package:flutter/material.dart';
+  import 'package:habittracker/database/DB_helper.dart';
 
-class Addhabit extends StatefulWidget {
-  const Addhabit({super.key});
+  class Addhabit extends StatefulWidget {
+    final int? habitId;
+    final String? habitName;
+    // final bool? isCompleted;
 
-  @override
-  State<Addhabit> createState() => _AddhabitState();
-}
+    const Addhabit({super.key, this.habitId, this.habitName});
 
-class _AddhabitState extends State<Addhabit> {
-  final TextEditingController _habitController = TextEditingController();
-  bool _isCompleted = false;
-  DB_helper? dbref;
-
-  @override
-  void initState() {
-    super.initState();
-    dbref = DB_helper.getInstance;
+    @override
+    State<Addhabit> createState() => _AddhabitState();
   }
 
-  @override
-  void dispose() {
-    _habitController.dispose();
-    super.dispose();
-  }
+  class _AddhabitState extends State<Addhabit> {
+    final TextEditingController _habitController = TextEditingController();
+    // bool _isCompleted = false;
+    DB_helper? dbref;
 
-  Future<void> _addHabit() async {
-    String habitName = _habitController.text.trim();
-    if (habitName.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Please enter a habit name")));
-      return;
+    @override
+    void initState() {
+      super.initState();
+      dbref = DB_helper.getInstance;
+      if (widget.habitId != null) {
+        _habitController.text = widget.habitName ?? '';
+        // _isCompleted = widget.isCompleted ?? false;
+      }
     }
-    bool success = await dbref!.adddata(
-      name: habitName,
-      iscomplate: _isCompleted ? 1 : 0,
-    );
-    if (success) {
-      Navigator.pop(context);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Failed to add habit")));
-    }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Add Habits")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Habit Name",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    @override
+    void dispose() {
+      _habitController.dispose();
+      super.dispose();
+    }
+
+    Future<void> _saveHabit() async {
+      String habitName = _habitController.text.trim();
+      if (habitName.isEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Please enter a habit name")));
+        return;
+      }
+
+      bool success;
+      if (widget.habitId == null) {
+        // Add new habit
+        success = await dbref!.adddata(
+          name: habitName,
+          iscomplate: 0,
+        );
+      } else {
+        // Update existing habit
+        success = await dbref!.updatehabitdata(
+          id: widget.habitId!,
+          name: habitName,
+          iscomplate: 0,
+        );
+      }
+
+      if (success) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.habitId == null
+                  ? "Habit added successfully"
+                  : "Habit updated successfully",
             ),
-            SizedBox(height: 8),
-            TextField(
-              controller: _habitController,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "Enter habit name (e.g., Read a book)",
-              ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.habitId == null
+                  ? "Failed to add habit"
+                  : "Failed to update habit",
             ),
-            SizedBox(height: 16),
-            Row(
-              children: [
-                Checkbox(
-                  value: _isCompleted,
-                  onChanged: (value) {
-                    setState(() {
-                      _isCompleted = value ?? false;
-                    });
-                  },
-                ),
-                Text("Mark as Completed"),
-              ],
-            ),
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _addHabit,
-              child: Text("Add Habit"),
-              style: ElevatedButton.styleFrom(
-                minimumSize: Size(double.infinity, 50), // Full-width button
-              ),
-            ),
-          ],
+          ),
+        );
+      }
+    }
+
+    @override
+    Widget build(BuildContext context) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.habitId == null ? "Add Habit" : "Edit Habit"),
         ),
-      ),
-    );
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Habit Name",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 8),
+              TextField(
+                controller: _habitController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: "Enter habit name (e.g., Read a book)",
+                ),
+              ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _saveHabit,
+                child: Text(
+                  widget.habitId == null ? "Add Habit" : "Update Habit",
+                ),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: Size(double.infinity, 50), // Full-width button
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
   }
-}

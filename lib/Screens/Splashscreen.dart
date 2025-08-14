@@ -13,7 +13,6 @@ class Splashscreen extends StatefulWidget {
 
 class _SplashscreenState extends State<Splashscreen> {
 
-
   @override
   void initState() {
     super.initState();
@@ -36,7 +35,6 @@ class _SplashscreenState extends State<Splashscreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The body of the Scaffold will be a Container with a gradient background
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

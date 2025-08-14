@@ -34,26 +34,20 @@ class _LoginnState extends State<Login> {
       return;
     }
 
-    List<Map<String, dynamic>>? user = await dbref!.getuser(email);
+    // List<Map<String, dynamic>>? user = await dbref!.getuser(email);
 
-    if (user != null ) {
-      // Store email in SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_email', email);
+    // Store email in SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_email', email);
 
-      print("sharepref email : ${prefs.getString('user_email')}");
+    print("sharepref email : ${prefs.getString('user_email')}");
 
-      // Navigate to Homescreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Homescreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Invalid email or password")),
-      );
-    }
-    // bool success = await
+    // Navigate to Homescreen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Homescreen()),
+    );
+      // bool success = await
     // dbref!.adduser(email: email, password: password);
     // print("email : $email");
     // print("password : $password");

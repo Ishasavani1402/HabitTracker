@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:habittracker/Screens/Registration.dart';
 import 'package:habittracker/Screens/Splashscreen.dart';
-
-import 'Screens/HomeScreen.dart';
 
 void main() {
   runApp(HabitTrackerApp());
