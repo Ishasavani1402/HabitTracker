@@ -1,9 +1,13 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:habittracker/Screens/AddHabit.dart';
 import 'package:habittracker/Screens/HabitCalender.dart';
+import 'package:habittracker/Screens/Registration.dart';
 import 'package:habittracker/database/DB_helper.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -77,7 +81,42 @@ class _HomescreenState extends State<Homescreen> {
     allhabitdata =  await dbref!.getdata();
     todayhabitlog = await dbref!.gethabitlogbydate(todaydate);
     setState(() {});
-
+  }
+  Future<bool?> _showLogoutConfirmationDialog() async {
+    return showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return
+          AlertDialog(
+          title: Text("Confirm Logout"),
+          content: Text("Are you sure you want to logout?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false), // No
+              child: Text("No"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true), // Yes
+              child: Text("Yes"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  Future<void> logout() async {
+    bool? confirm = await _showLogoutConfirmationDialog();
+    if (confirm == true) {
+      SharedPreferences pref = await SharedPreferences.getInstance();
+      await pref.remove("user_email");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Login()),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Logged out successfully")),
+      );
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -87,7 +126,8 @@ class _HomescreenState extends State<Homescreen> {
         actions: [
           IconButton(onPressed: (){
             Navigator.push(context, MaterialPageRoute(builder: (context)=>Habitcalender(habits: allhabitdata)));
-          }, icon:Icon(Icons.calendar_month))
+          }, icon:Icon(Icons.calendar_month)),
+          IconButton(onPressed: logout, icon: Icon(Icons.logout))
         ],
       ),
       body: allhabitdata.isNotEmpty ? ListView.builder(
