@@ -29,7 +29,7 @@ class _SplashscreenState extends State<Splashscreen> {
     if (email != null) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Homescreen()));
     } else{
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Login()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Registration()));
     }
   }
   @override

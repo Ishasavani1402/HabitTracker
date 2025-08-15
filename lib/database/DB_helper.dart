@@ -7,15 +7,21 @@ class DB_helper {
   DB_helper._(); // private constructor
 
   static final DB_helper getInstance = DB_helper._(); // class ka object
+  //for table my habit
   static final table_name = "myhabit";
-  static final table_user = "myuser";
+  static final colum_id = "id";
+  static final colum_name = "Habitname";
+  static final colum_iscomplate = "iscomplete";
+  static final column_category = "category";// add new column after table create
+
+  //for table habit log
   static final table_habit_log = "habit_log";
   static final colum_habit_id = "habit_id"; // Foreign key to myhabit
   static final colum_date = "date"; // Date of the log
   static final colum_status = "status"; // Completion status for the day
-  static final colum_id = "id";
-  static final colum_name = "Habitname";
-  static final colum_iscomplate = "iscomplete";
+
+  //for user
+  static final table_user = "myuser";
   static final colum_password = "password";
   static final colum_email = "email";
 
@@ -39,12 +45,11 @@ class DB_helper {
 
     return await openDatabase(
       dbpath,
-
       onCreate: (db, version) {
         //create habit table
         db.execute(
           "create table $table_name ($colum_id integer primary key autoincrement, "
-          "$colum_name text , $colum_iscomplate integer)",
+          "$colum_name text , $column_category text , $colum_iscomplate integer)",
         );
 
         //user table
@@ -58,7 +63,7 @@ class DB_helper {
             "$colum_habit_id integer , $colum_date text , $colum_status integer,"
             "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id)");
       },
-      version: 3,
+      version: 4,
       onUpgrade: (db, oldversion, newversion) async {
         if (oldversion < 2) {
           await db.execute(
@@ -73,6 +78,12 @@ class DB_helper {
                 "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id))",
           );
         }
+        if(oldversion < 4){
+          // Add category column to existing myhabit table
+          await db.execute(
+            "ALTER TABLE $table_name ADD $column_category TEXT",
+          );
+        }
       },
     ); // version 1 means database version when we add new
     // table or add new column in table then we change version (for that case version is necessary)
@@ -81,11 +92,12 @@ class DB_helper {
   // after database operation (insert , update , delete) when database execute query it return row affected (how many row affected)
 
   //add data to database (insert)
-  Future<bool> adddata({required String name, required int iscomplate}) async {
+  Future<bool> adddata({required String name, required String category,required int iscomplate}) async {
     try {
       var db = await getDB();
       int rowaffect = await db.insert(table_name, {
         colum_name: name,
+        column_category : category,// add category
         colum_iscomplate: iscomplate,
       });
       return rowaffect > 0;
@@ -112,6 +124,7 @@ class DB_helper {
   Future<bool> updatehabitdata({
     required int id,
     required String name,
+    // required String category,
     required int iscomplate,
   }) async {
     try {

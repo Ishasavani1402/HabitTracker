@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:habittracker/Screens/AddHabit.dart';
@@ -8,6 +7,8 @@ import 'package:habittracker/Screens/Registration.dart';
 import 'package:habittracker/database/DB_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'HabitCategory.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({super.key});
@@ -18,8 +19,8 @@ class Homescreen extends StatefulWidget {
 
 class _HomescreenState extends State<Homescreen> {
   DB_helper? dbref;
-  List<Map<String , dynamic>> allhabitdata = [];
-  List<Map<String , dynamic>> todayhabitlog = [];
+  List<Map<String, dynamic>> allhabitdata = [];
+  List<Map<String, dynamic>> todayhabitlog = [];
   String todaydate = DateFormat("yyyy-MM-dd").format(DateTime.now());
 
   @override
@@ -27,7 +28,6 @@ class _HomescreenState extends State<Homescreen> {
     super.initState();
     dbref = DB_helper.getInstance;
     getdata();
-
   }
 
   Future<bool?> _showDeleteConfirmationDialog(String habitName) async {
@@ -52,7 +52,7 @@ class _HomescreenState extends State<Homescreen> {
     );
   }
 
-  Future<void> _toggleHabitCompletion(int index)async{
+  Future<void> _toggleHabitCompletion(int index) async {
     bool newStatus = todayhabitlog
         .firstWhere(
           (log) => log[DB_helper.colum_habit_id] == allhabitdata[index][DB_helper.colum_id],
@@ -74,20 +74,19 @@ class _HomescreenState extends State<Homescreen> {
         SnackBar(content: Text("Failed to update habit status")),
       );
     }
-
   }
 
-  Future<void> getdata()async{
-    allhabitdata =  await dbref!.getdata();
+  Future<void> getdata() async {
+    allhabitdata = await dbref!.getdata();
     todayhabitlog = await dbref!.gethabitlogbydate(todaydate);
     setState(() {});
   }
+
   Future<bool?> _showLogoutConfirmationDialog() async {
     return showDialog<bool>(
       context: context,
       builder: (BuildContext context) {
-        return
-          AlertDialog(
+        return AlertDialog(
           title: Text("Confirm Logout"),
           content: Text("Are you sure you want to logout?"),
           actions: [
@@ -104,6 +103,7 @@ class _HomescreenState extends State<Homescreen> {
       },
     );
   }
+
   Future<void> logout() async {
     bool? confirm = await _showLogoutConfirmationDialog();
     if (confirm == true) {
@@ -111,104 +111,133 @@ class _HomescreenState extends State<Homescreen> {
       await pref.remove("user_email");
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Login()),
+        MaterialPageRoute(builder: (context) => Registration()),
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Logged out successfully")),
       );
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Habit Tracker"),
         actions: [
-          IconButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>Habitcalender(habits: allhabitdata)));
-          }, icon:Icon(Icons.calendar_month)),
-          IconButton(onPressed: logout, icon: Icon(Icons.logout))
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Habitcalender(habits: allhabitdata),
+                ),
+              );
+            },
+            icon: Icon(Icons.calendar_month),
+          ),
+          IconButton(onPressed: logout, icon: Icon(Icons.logout)),
         ],
       ),
-      body: allhabitdata.isNotEmpty ? ListView.builder(
-          itemCount: allhabitdata.length,
-          itemBuilder: (context , index){
-            int habitId = allhabitdata[index][DB_helper.colum_id];
-            bool isCompletedToday = todayhabitlog
-                .any((log) => log[DB_helper.colum_habit_id] == habitId && log[DB_helper.colum_status] == 1);
-            return ListTile(
-                leading: Checkbox(
-                  value: isCompletedToday,
-                  onChanged: (value) {
-                    _toggleHabitCompletion(index);
-                  },
-                ),
-              title: Text(allhabitdata[index][DB_helper.colum_name],
+      body: allhabitdata.isNotEmpty
+          ? ListView.builder(
+        itemCount: allhabitdata.length,
+        itemBuilder: (context, index) {
+          int habitId = allhabitdata[index][DB_helper.colum_id];
+          bool isCompletedToday = todayhabitlog.any(
+                (log) => log[DB_helper.colum_habit_id] == habitId && log[DB_helper.colum_status] == 1,
+          );
+          return ListTile(
+            leading: Checkbox(
+              value: isCompletedToday,
+              onChanged: (value) {
+                _toggleHabitCompletion(index);
+              },
+            ),
+            title: Text(
+              allhabitdata[index][DB_helper.colum_name],
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold
-              ),),
-              subtitle: Text(isCompletedToday ? "Complate Today" : "Not Complate Today" ,
-              style: TextStyle( fontSize: 13,
-                  fontWeight: FontWeight.bold),),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    onTap: ()async{
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Addhabit(
-                            habitId: allhabitdata[index][DB_helper.colum_id],
-                            habitName: allhabitdata[index][DB_helper.colum_name],
-                            // isCompleted: allhabitdata[index][DB_helper.colum_iscomplate] == 1,
-                          ),
-                        ),
-                      );
-                      await getdata();
-
-                    },
-                    child: Icon(Icons.edit , color: Colors.blue,),
-
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isCompletedToday ? "Completed Today" : "Not Completed Today",
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                   ),
-                 GestureDetector(
-                   onTap: () async{
-                     bool? confirm = await _showDeleteConfirmationDialog(
-                       allhabitdata[index][DB_helper.colum_name],
-                     );
-                     if(confirm == true){
-                       bool success = await dbref!.deletehabitdata(
-                         id: allhabitdata[index][DB_helper.colum_id],
-                       );
-                       if(success){
-                         await
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           SnackBar(content: Text("Habit deleted successfully")),
-                         );
-                         await getdata();
-                       }
-                     }else{
-                       ScaffoldMessenger.of(context).showSnackBar(
-                         SnackBar(content: Text("Failed to delete habit")),
-                       );
-                     }
-                   },
-                   child:  Icon(Icons.delete , color: Colors.red,),
-                 )
-                ],
-              )
-            );
-
-      }) : Center(child: Text("No Data Found"),),
+                ),
+                Text(
+                  "Category: ${allhabitdata[index][DB_helper.column_category] ?? 'None'}",
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Addhabit(
+                          habitId: allhabitdata[index][DB_helper.colum_id],
+                          habitName: allhabitdata[index][DB_helper.colum_name],
+                          category: allhabitdata[index][DB_helper.column_category],
+                        ),
+                      ),
+                    );
+                    await getdata();
+                  },
+                  child: Icon(Icons.edit, color: Colors.blue),
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    bool? confirm = await _showDeleteConfirmationDialog(
+                      allhabitdata[index][DB_helper.colum_name],
+                    );
+                    if (confirm == true) {
+                      bool success = await dbref!.deletehabitdata(
+                        id: allhabitdata[index][DB_helper.colum_id],
+                      );
+                      if (success) {
+                        await getdata();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Habit deleted successfully")),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Failed to delete habit")),
+                        );
+                      }
+                    }
+                  },
+                  child: Icon(Icons.delete, color: Colors.red),
+                ),
+              ],
+            ),
+          );
+        },
+      )
+          : Center(child: Text("No Data Found")),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-          onPressed: ()async{
-          await Navigator.push(context, MaterialPageRoute(builder: (context)=>
-          Addhabit()));
-          await getdata();// after add ui
-
-          }),
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Habitcategory()),
+          );
+          await getdata();
+        },
+      ),
     );
   }
 }

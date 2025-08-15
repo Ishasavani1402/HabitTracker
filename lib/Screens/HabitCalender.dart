@@ -69,16 +69,21 @@ class _HabitcalenderState extends State<Habitcalender> {
               titleCentered: true,
             ),
           ),
-          Expanded(child:_selectedDayLogs.isNotEmpty ?
+          Expanded(
+              child:_selectedDayLogs.isNotEmpty ?
           ListView.builder(
-              itemCount:  widget.habits.length,
+              itemCount:  _selectedDayLogs.length,
               itemBuilder: (context , index){
-                int habitId = widget.habits[index][DB_helper.colum_id];
-                bool isCompleted = _selectedDayLogs.any(
-                      (log) => log[DB_helper.colum_habit_id] == habitId && log[DB_helper.colum_status] == 1,
+                int habitId = _selectedDayLogs[index][DB_helper.colum_habit_id];
+                // Find the habit details from widget.habits
+                var habit = widget.habits.firstWhere(
+                      (h) => h[DB_helper.colum_id] == habitId,
+                  orElse: () => {}, // Return empty map if not found
                 );
+                if (habit.isEmpty) return SizedBox.shrink(); // Skip if habit not found
+                bool isCompleted = _selectedDayLogs[index][DB_helper.colum_status] == 1;
                 return ListTile(
-                  title: Text(widget.habits[index][DB_helper.colum_name]),
+                  title: Text(habit[DB_helper.colum_name] ?? "Unknown Habit"),
                   trailing: Icon(
                     isCompleted ? Icons.check_circle : Icons.cancel,
                     color: isCompleted ? Colors.green : Colors.red,

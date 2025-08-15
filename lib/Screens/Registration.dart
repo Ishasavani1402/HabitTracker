@@ -4,14 +4,14 @@
   import '../database/DB_helper.dart';
   import 'HomeScreen.dart';
 
-  class Login extends StatefulWidget {
-    const Login({super.key});
+  class Registration extends StatefulWidget {
+    const Registration({super.key});
 
     @override
-    State<Login> createState() => _LoginnState();
+    State<Registration> createState() => _LoginnState();
   }
 
-  class _LoginnState extends State<Login> {
+  class _LoginnState extends State<Registration> {
     final TextEditingController _emailController = TextEditingController();
     final TextEditingController _passwordController = TextEditingController();
     bool _obscurePassword = false;
@@ -34,19 +34,40 @@
         return;
       }
 
-      // List<Map<String, dynamic>>? user = await dbref!.getuser(email);
+      try {
+        List<Map<String, dynamic>>? user = await dbref!.getuser(email);
 
-      // Store email in SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user_email', email);
+        if (user.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text("User with this email already exists")),
+          );
+          return;
+        }
 
-      print("sharepref email : ${prefs.getString('user_email')}");
+        //add user in databse
+        bool success = await dbref!.adduser(email: email, password: password);
+        if (success) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('user_email', email);
 
-      // Navigate to Homescreen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Homescreen()),
-      );
+          print("sharepref email : ${prefs.getString('user_email')}");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Homescreen()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Failed to register user")),
+          );
+        }
+      }catch(e){
+        print("register Error : $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to register user")),
+        );
+      }
+
 
     }
 
