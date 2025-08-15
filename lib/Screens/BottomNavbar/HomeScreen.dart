@@ -1,9 +1,8 @@
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:habittracker/Screens/AddHabit.dart';
-import 'package:habittracker/Screens/HabitCalender.dart';
-import 'package:habittracker/Screens/Registration.dart';
+import 'package:habittracker/Screens/BottomNavbar/AddHabit.dart';
+import 'package:habittracker/Screens/UserAuth/Login.dart';
 import 'package:habittracker/database/DB_helper.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,12 +21,14 @@ class _HomescreenState extends State<Homescreen> {
   List<Map<String, dynamic>> allhabitdata = [];
   List<Map<String, dynamic>> todayhabitlog = [];
   String todaydate = DateFormat("yyyy-MM-dd").format(DateTime.now());
+  String? username ;
 
   @override
   void initState() {
     super.initState();
     dbref = DB_helper.getInstance;
     getdata();
+    loadusername();
   }
 
   Future<bool?> _showDeleteConfirmationDialog(String habitName) async {
@@ -111,7 +112,7 @@ class _HomescreenState extends State<Homescreen> {
       await pref.remove("user_email");
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Registration()),
+        MaterialPageRoute(builder: (context) => Login()),
       );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Logged out successfully")),
@@ -119,23 +120,20 @@ class _HomescreenState extends State<Homescreen> {
     }
   }
 
+  Future<void> loadusername()async{
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    username = pref.getString('username');
+    print("username : $username");
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Habit Tracker"),
+        automaticallyImplyLeading: false,
+        title: Text("Habit Tracker($username)"),
         actions: [
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Habitcalender(habits: allhabitdata),
-                ),
-              );
-            },
-            icon: Icon(Icons.calendar_month),
-          ),
           IconButton(onPressed: logout, icon: Icon(Icons.logout)),
         ],
       ),
@@ -228,16 +226,6 @@ class _HomescreenState extends State<Homescreen> {
         },
       )
           : Center(child: Text("No Data Found")),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => Habitcategory()),
-          );
-          await getdata();
-        },
-      ),
     );
   }
 }

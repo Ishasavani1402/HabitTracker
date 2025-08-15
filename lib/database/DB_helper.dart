@@ -24,6 +24,7 @@ class DB_helper {
   static final table_user = "myuser";
   static final colum_password = "password";
   static final colum_email = "email";
+  static final column_username = 'username';
 
   Database? mydatabase; //  sqlite database object(database ka khud ka object)
 
@@ -54,7 +55,7 @@ class DB_helper {
 
         //user table
         db.execute(
-          "create table $table_user ($colum_email text unique,"
+          "create table $table_user ($column_username text ,$colum_email text unique,"
           "$colum_password text)",
         );
 
@@ -63,7 +64,7 @@ class DB_helper {
             "$colum_habit_id integer , $colum_date text , $colum_status integer,"
             "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id)");
       },
-      version: 4,
+      version: 5,
       onUpgrade: (db, oldversion, newversion) async {
         if (oldversion < 2) {
           await db.execute(
@@ -83,6 +84,10 @@ class DB_helper {
           await db.execute(
             "ALTER TABLE $table_name ADD $column_category TEXT",
           );
+        }
+        if(oldversion < 5){
+          // add username column to existing myuser table
+          await db.execute('ALTER TABLE $table_user ADD $column_username text');
         }
       },
     ); // version 1 means database version when we add new
@@ -228,10 +233,11 @@ class DB_helper {
 
 
 //Add new user
-  Future<bool> adduser({required String email, required String password,}) async {
+  Future<bool> adduser({required String username ,required String email, required String password,}) async {
     try {
       var db = await getDB();
       int rowaffect = await db.insert(table_user, {
+        column_username: username,
         colum_email: email,
         colum_password: password,
       });

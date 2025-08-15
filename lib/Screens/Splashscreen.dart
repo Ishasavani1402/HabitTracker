@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:habittracker/Screens/HomeScreen.dart';
-import 'package:habittracker/Screens/Registration.dart';
+import 'package:habittracker/Screens/UserAuth/Login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'BottomNavbar.dart';
+import 'UserAuth/Registration.dart';
 
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
@@ -27,9 +29,10 @@ class _SplashscreenState extends State<Splashscreen> {
     print("splash screen user email : $email");
 
     if (email != null) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Homescreen()));
+      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Homescreen()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Bottomnavbar()));
     } else{
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Registration()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Login()));
     }
   }
   @override

@@ -1,17 +1,19 @@
   import 'package:flutter/material.dart';
+import 'package:habittracker/Screens/UserAuth/Login.dart';
   import 'package:shared_preferences/shared_preferences.dart';
 
-  import '../database/DB_helper.dart';
-  import 'HomeScreen.dart';
+  import '../../database/DB_helper.dart';
+  import '../BottomNavbar/HomeScreen.dart';
 
   class Registration extends StatefulWidget {
     const Registration({super.key});
 
     @override
-    State<Registration> createState() => _LoginnState();
+    State<Registration> createState() => _RegistationState();
   }
 
-  class _LoginnState extends State<Registration> {
+  class _RegistationState extends State<Registration> {
+    final TextEditingController _usernameController = TextEditingController();
     final TextEditingController _emailController = TextEditingController();
     final TextEditingController _passwordController = TextEditingController();
     bool _obscurePassword = false;
@@ -25,11 +27,12 @@
     }
 
 
-    Future<void> loginuser()async{
+    Future<void> registeruser()async{
+      String username =  _usernameController.text.trim();
       String email =  _emailController.text.trim();
       String password =  _passwordController.text.trim();
 
-      if(email.isEmpty || password.isEmpty){
+      if(username.isEmpty || email.isEmpty || password.isEmpty){
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Please fill all the fields")));
         return;
       }
@@ -46,12 +49,15 @@
         }
 
         //add user in databse
-        bool success = await dbref!.adduser(email: email, password: password);
+        bool success = await dbref!.adduser(username : username , email: email, password: password);
         if (success) {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.setString('user_email', email);
+          await prefs.setString("username", username);
 
           print("sharepref email : ${prefs.getString('user_email')}");
+          print("sharepref username : ${prefs.getString('username')}");
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const Homescreen()),
@@ -83,6 +89,14 @@
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: 'Email',
@@ -111,12 +125,18 @@
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: loginuser,
+                onPressed: registeruser,
                 child: const Text('Register'),
               ),
-            ],
+              const SizedBox(height: 8),
+
+              TextButton(onPressed: (){
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Login()));
+              }, child: Text("Already have an account ? Login"))
+
+                ],
           ),
-        ),
+        )
       );
     }
   }

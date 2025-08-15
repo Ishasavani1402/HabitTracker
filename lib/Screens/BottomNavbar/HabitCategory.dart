@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:habittracker/Screens/AddHabit.dart';
+import 'package:habittracker/Screens/BottomNavbar/AddHabit.dart';
 
 class Habitcategory extends StatefulWidget {
   const Habitcategory({super.key});
