@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:habittracker/Screens/BottomNavbar/AddHabit.dart';
+import 'package:habittracker/database/DB_helper.dart';
 
 class Habitcategory extends StatefulWidget {
   const Habitcategory({super.key});
@@ -10,27 +11,41 @@ class Habitcategory extends StatefulWidget {
 }
 
 class _HabitcategoryState extends State<Habitcategory> with SingleTickerProviderStateMixin {
-  final List<String> categories = [
-    'Study',
-    'Fitness',
-    'Spiritual',
-    'Mental Health',
-  ];
-
   // Define the colors for the gradient
   final Color startColor = const Color(0xFF667eea);
   final Color endColor = const Color(0xFF764ba2);
-
   late AnimationController _animationController;
+  List<Map<String, dynamic>> categories = [];
+  bool isLoading = true;
+  DB_helper? dbref;
 
   @override
   void initState() {
     super.initState();
+    dbref = DB_helper.getInstance;
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _animationController.forward();
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final fetchedCategories = await dbref!.getCategories();
+      setState(() {
+        categories = fetchedCategories;
+        isLoading = false;
+        _animationController.forward();
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load categories: $e")),
+      );
+    }
   }
 
   @override
@@ -88,14 +103,21 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                       topLeft: Radius.circular(40),
                       topRight: Radius.circular(40),
                     ),
-                    child: ListView.builder(
+                    child: isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : categories.isEmpty
+                        ? const Center(child: Text("No categories found"))
+                        : ListView.builder(
                       padding: EdgeInsets.symmetric(
                         vertical: screenHeight * 0.03,
                         horizontal: screenWidth * 0.05,
                       ),
                       itemCount: categories.length,
                       itemBuilder: (context, index) {
-                        final categoryName = categories[index];
+                        final category = categories[index];
+                        final categoryName = category['name'] as String;
+                        final categoryIcon = category['icon'] as IconData;
+
                         return FadeTransition(
                           opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
                             CurvedAnimation(
@@ -146,7 +168,7 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                                           borderRadius: BorderRadius.circular(15),
                                         ),
                                         child: Icon(
-                                          Icons.category, // Using a generic icon as the original data is just a list of strings
+                                          categoryIcon,
                                           color: startColor,
                                           size: screenWidth * 0.07,
                                         ),

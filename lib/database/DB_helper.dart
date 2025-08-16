@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -260,6 +261,55 @@ class DB_helper {
     } catch (e) {
       print("Error : $e");
       return [];
+    }
+  }
+
+  // In DB_helper.dart
+  Future<List<Map<String, dynamic>>> getCategories() async {
+    try {
+      var db = await getDB();
+      // Fetch distinct categories from the myhabit table
+      List<Map<String, dynamic>> result = await db.rawQuery(
+        'SELECT DISTINCT $column_category AS name FROM $table_name WHERE $column_category IS NOT NULL',
+      );
+
+      // Map category names to a list with icons
+      const Map<String, IconData> categoryIcons = {
+        'Study': Icons.book,
+        'Fitness': Icons.fitness_center,
+        'Spiritual': Icons.self_improvement,
+        'Mental Health': Icons.psychology,
+      };
+
+      // Convert the result to List<Map<String, dynamic>> with icons
+      List<Map<String, dynamic>> categories = result.map((category) {
+        String categoryName = category['name'] as String;
+        return {
+          'name': categoryName,
+          'icon': categoryIcons[categoryName] ?? Icons.category, // Fallback icon
+        };
+      }).toList();
+
+      // If no categories are found, return default categories
+      if (categories.isEmpty) {
+        categories = [
+          {'name': 'Study', 'icon': Icons.book},
+          {'name': 'Fitness', 'icon': Icons.fitness_center},
+          {'name': 'Spiritual', 'icon': Icons.self_improvement},
+          {'name': 'Mental Health', 'icon': Icons.psychology},
+        ];
+      }
+
+      return categories;
+    } catch (e) {
+      print("Get Categories Error: $e");
+      // Return default categories on error
+      return [
+        {'name': 'Study', 'icon': Icons.book},
+        {'name': 'Fitness', 'icon': Icons.fitness_center},
+        {'name': 'Spiritual', 'icon': Icons.self_improvement},
+        {'name': 'Mental Health', 'icon': Icons.psychology},
+      ];
     }
   }
 }
