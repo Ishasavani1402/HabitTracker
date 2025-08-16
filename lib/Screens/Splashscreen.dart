@@ -46,9 +46,9 @@ class _SplashscreenState extends State<Splashscreen> {
             end: Alignment.bottomRight,
             // Use a list of colors for the gradient effect
             colors: [
-              Color(0xFF6A1B9A), // A deep purple
-              Color(0xFF8E24AA), // A slightly lighter purple
-              Color(0xFFAB47BC), // A medium purple
+              Color(0xFF667eea), // A deep purple
+              Color(0xFF764ba2), // A slightly lighter purple
+              Color(0xff432262), // A medium purple
             ],
           ),
         ),

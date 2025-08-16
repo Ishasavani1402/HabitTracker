@@ -1,5 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:habittracker/Screens/BottomNavbar.dart';
 import 'package:habittracker/database/DB_helper.dart';
 
@@ -17,6 +17,9 @@ class Addhabit extends StatefulWidget {
 class _AddhabitState extends State<Addhabit> {
   final TextEditingController _habitController = TextEditingController();
   DB_helper? dbref;
+
+  final Color startColor = const Color(0xFF667eea);
+  final Color endColor = const Color(0xFF764ba2);
 
   @override
   void initState() {
@@ -37,7 +40,9 @@ class _AddhabitState extends State<Addhabit> {
     String habitName = _habitController.text.trim();
     if (habitName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a habit name")),
+        const SnackBar(content: Text("Please enter a habit name"),
+        backgroundColor: Colors.yellow,
+        behavior: SnackBarBehavior.floating,),
       );
       return;
     }
@@ -62,14 +67,12 @@ class _AddhabitState extends State<Addhabit> {
       success = await dbref!.updatehabitdata(
         id: widget.habitId!,
         name: habitName,
-        // category: widget.category!,
         iscomplate: 0,
       );
     }
 
     if (success) {
-      // Navigator.popUntil(context, (route) => route.settings.name == '/Homescreen' || route.isFirst);
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=> Bottomnavbar()));
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Bottomnavbar()));
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -77,6 +80,8 @@ class _AddhabitState extends State<Addhabit> {
                 ? "Habit added successfully"
                 : "Habit updated successfully",
           ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } else {
@@ -87,6 +92,8 @@ class _AddhabitState extends State<Addhabit> {
                 ? "Failed to add habit"
                 : "Failed to update habit",
           ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -94,43 +101,170 @@ class _AddhabitState extends State<Addhabit> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.habitId == null ? "Add Habit" : "Edit Habit"),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Habit Name",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _habitController,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                hintText: "Enter habit name (e.g., Read a book)",
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [startColor.withOpacity(0.9), endColor.withOpacity(0.9)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Custom Header
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenWidth * 0.05,
+                  vertical: screenHeight * 0.02,
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    SizedBox(width: screenWidth * 0.02),
+                    Text(
+                      widget.habitId == null ? "Add a New Habit" : "Edit Habit",
+                      style: GoogleFonts.poppins(
+                        fontSize: screenWidth * 0.065,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "Category: ${widget.category ?? 'None'}",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _saveHabit,
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 50), // Full-width button
+              // Main content area with white background
+              Expanded(
+                child: Container(
+                  width: screenWidth,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.05,
+                    vertical: screenHeight * 0.03,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            "Category:",
+                            style: GoogleFonts.poppins(
+                              fontSize: screenWidth * 0.045,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(width: screenWidth * 0.02),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: startColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              widget.category ?? 'None',
+                              style: GoogleFonts.poppins(
+                                fontSize: screenWidth * 0.04,
+                                color: startColor,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: screenHeight * 0.02),
+
+                      // Habit Name input field
+                      Text(
+                        "Habit Name",
+                        style: GoogleFonts.poppins(
+                          fontSize: screenWidth * 0.045,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.01),
+                      TextField(
+                        controller: _habitController,
+                        style: GoogleFonts.poppins(),
+                        decoration: InputDecoration(
+                          hintText: "Enter habit name (e.g., Read a book)",
+                          hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(15),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey[200],
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: screenHeight * 0.02,
+                            horizontal: screenWidth * 0.05,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.025),
+                      // Category display
+                      // Save/Update button
+                      Container(
+                        width: double.infinity,
+                        height: screenHeight * 0.07,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          gradient: LinearGradient(
+                            colors: [startColor, endColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: endColor.withOpacity(0.4),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _saveHabit,
+                            borderRadius: BorderRadius.circular(15),
+                            child: Center(
+                              child: Text(
+                                widget.habitId == null ? "Add Habit" : "Update Habit",
+                                style: GoogleFonts.poppins(
+                                  fontSize: screenWidth * 0.05,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              child: Text(
-                widget.habitId == null ? "Add Habit" : "Update Habit",
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
