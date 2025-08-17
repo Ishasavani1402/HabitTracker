@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -127,9 +128,7 @@ class DB_helper {
   }
 
   //update habit data
-  Future<bool> updatehabitdata({
-    required int id,
-    required String name,
+  Future<bool> updatehabitdata({required int id, required String name,
     // required String category,
     required int iscomplate,
   }) async {
@@ -264,56 +263,6 @@ class DB_helper {
     }
   }
 
-  // In DB_helper.dart
-  // Future<List<Map<String, dynamic>>> getCategories() async {
-  //   try {
-  //     var db = await getDB();
-  //     // Fetch distinct categories from the myhabit table
-  //     List<Map<String, dynamic>> result = await db.rawQuery(
-  //       'SELECT DISTINCT $column_category AS name FROM $table_name WHERE $column_category IS NOT NULL',
-  //     );
-  //
-  //     // Define Default category with icon
-  //     const Map<String, IconData> categoryIcons = {
-  //       'Study': Icons.book,
-  //       'Fitness': Icons.fitness_center,
-  //       'Spiritual': Icons.self_improvement,
-  //       'Mental Health': Icons.psychology,
-  //     };
-  //
-  //     // Convert the result to List<Map<String, dynamic>> with icons
-  //     List<Map<String, dynamic>> categories = result.map((category) {
-  //       String categoryName = category['name'] as String;
-  //       return {
-  //         'name': categoryName,
-  //         'icon': categoryIcons[categoryName] ?? Icons.category, // Fallback icon
-  //       };
-  //     }).toList();
-  //
-  //     // If no categories are found, return default categories
-  //     if (categories.isEmpty) {
-  //       categories = [
-  //         {'name': 'Study', 'icon': Icons.book},
-  //         {'name': 'Fitness', 'icon': Icons.fitness_center},
-  //         {'name': 'Spiritual', 'icon': Icons.self_improvement},
-  //         {'name': 'Mental Health', 'icon': Icons.psychology},
-  //       ];
-  //     }
-  //
-  //     return categories;
-  //   } catch (e) {
-  //     print("Get Categories Error: $e");
-  //     // Return default categories on error
-  //     return [
-  //       {'name': 'Study', 'icon': Icons.book},
-  //       {'name': 'Fitness', 'icon': Icons.fitness_center},
-  //       {'name': 'Spiritual', 'icon': Icons.self_improvement},
-  //       {'name': 'Mental Health', 'icon': Icons.psychology},
-  //     ];
-  //   }
-  // }
-
-
   Future<List<Map<String, dynamic>>> getCategories() async {
     try {
       var db = await getDB();
@@ -362,6 +311,57 @@ class DB_helper {
         {'name': 'Spiritual', 'icon': Icons.self_improvement},
         {'name': 'Mental Health', 'icon': Icons.psychology},
       ];
+    }
+  }
+
+  // Check for 5 consecutive days of completion
+  Future<bool> hasConsecutiveCompletion(int habitId, String habitName) async {
+    try {
+      var db = await getDB();
+      DateTime now = DateTime.now();
+      String today = DateFormat('yyyy-MM-dd').format(now);
+      String fiveDaysAgo = DateFormat('yyyy-MM-dd').format(now.subtract(Duration(days: 4)));
+
+      List<Map<String, dynamic>> logs = await db.query(
+        table_habit_log,
+        where: '$colum_habit_id = ? AND $colum_date >= ? AND $colum_date <= ?',
+        whereArgs: [habitId, fiveDaysAgo, today],
+        orderBy: '$colum_date DESC',
+      );
+
+      if (logs.length < 5) return false;
+
+      bool hasFiveConsecutive = true;
+      DateTime currentDay = now;
+      for (int i = 0; i < 5; i++) {
+        String expectedDate = DateFormat('yyyy-MM-dd').format(currentDay.subtract(Duration(days: i)));
+        bool found = logs.any((log) => log[colum_date] == expectedDate && log[colum_status] == 1);
+        if (!found) {
+          hasFiveConsecutive = false;
+          break;
+        }
+      }
+
+      return hasFiveConsecutive;
+    } catch (e) {
+      print("Check Consecutive Completion Error: $e");
+      return false;
+    }
+  }
+
+  // Check if habit status is missing for today
+  Future<bool> isHabitStatusMissing(int habitId, String today) async {
+    try {
+      var db = await getDB();
+      List<Map<String, dynamic>> logs = await db.query(
+        table_habit_log,
+        where: '$colum_habit_id = ? AND $colum_date = ?',
+        whereArgs: [habitId, today],
+      );
+      return logs.isEmpty; // Return true if no log exists for today
+    } catch (e) {
+      print("Check Missing Status Error: $e");
+      return false;
     }
   }
 }

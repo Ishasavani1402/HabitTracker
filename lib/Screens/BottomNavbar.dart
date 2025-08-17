@@ -72,7 +72,7 @@ class _BottomnavbarState extends State<Bottomnavbar> {
             alignment: Alignment.bottomCenter,
             child: Container(
               height: 80,
-              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 15.0),
+              // margin: const EdgeInsets.symmetric(horizontal: 10,),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(20),
                 gradient: LinearGradient(

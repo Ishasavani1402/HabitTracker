@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:habittracker/NotificationService.dart';
 import 'package:habittracker/Screens/BottomNavbar/AddHabit.dart';
 import 'package:habittracker/Screens/UserAuth/Login.dart';
 import 'package:habittracker/database/DB_helper.dart';
@@ -21,6 +22,9 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
   String? username;
   bool _isLoading = true;
 
+  final NotificationService notificationService = NotificationService();
+
+
   // Animation Controller
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -41,8 +45,20 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
       parent: _controller,
       curve: Curves.easeInOut,
     ));
+    notificationService.init();
     getdata();
     loadusername();
+    scheduleReminderNotifications();
+  }
+  Future<void> scheduleReminderNotifications() async {
+    for (var habit in allhabitdata) {
+      int habitId = habit[DB_helper.colum_id];
+      String habitName = habit[DB_helper.colum_name];
+      bool isMissing = await dbref!.isHabitStatusMissing(habitId, todaydate);
+      if (isMissing) {
+        await notificationService.scheduleReminderNotification(habitId, habitName);
+      }
+    }
   }
 
   @override
@@ -360,9 +376,10 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
                                     title: Text(
                                       habit[DB_helper.colum_name],
                                       style: GoogleFonts.poppins(
-                                        fontSize: screenWidth * 0.045,
+                                        fontSize: screenWidth * 0.042,
                                         fontWeight: FontWeight.w600,
-                                        color: isCompletedToday ? startColor : Colors.black87,
+                                        color: isCompletedToday ? startColor
+                                            : Colors.black87,
                                       ),
                                     ),
                                     subtitle: Column(
@@ -422,7 +439,7 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
                                   ),
                                 );
                               }).toList(),
-                              SizedBox(height: screenHeight * 0.02),
+                              // SizedBox(height: screenHeight * 0.02),
                             ],
                           ),
                         );
