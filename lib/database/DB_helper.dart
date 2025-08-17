@@ -265,6 +265,55 @@ class DB_helper {
   }
 
   // In DB_helper.dart
+  // Future<List<Map<String, dynamic>>> getCategories() async {
+  //   try {
+  //     var db = await getDB();
+  //     // Fetch distinct categories from the myhabit table
+  //     List<Map<String, dynamic>> result = await db.rawQuery(
+  //       'SELECT DISTINCT $column_category AS name FROM $table_name WHERE $column_category IS NOT NULL',
+  //     );
+  //
+  //     // Define Default category with icon
+  //     const Map<String, IconData> categoryIcons = {
+  //       'Study': Icons.book,
+  //       'Fitness': Icons.fitness_center,
+  //       'Spiritual': Icons.self_improvement,
+  //       'Mental Health': Icons.psychology,
+  //     };
+  //
+  //     // Convert the result to List<Map<String, dynamic>> with icons
+  //     List<Map<String, dynamic>> categories = result.map((category) {
+  //       String categoryName = category['name'] as String;
+  //       return {
+  //         'name': categoryName,
+  //         'icon': categoryIcons[categoryName] ?? Icons.category, // Fallback icon
+  //       };
+  //     }).toList();
+  //
+  //     // If no categories are found, return default categories
+  //     if (categories.isEmpty) {
+  //       categories = [
+  //         {'name': 'Study', 'icon': Icons.book},
+  //         {'name': 'Fitness', 'icon': Icons.fitness_center},
+  //         {'name': 'Spiritual', 'icon': Icons.self_improvement},
+  //         {'name': 'Mental Health', 'icon': Icons.psychology},
+  //       ];
+  //     }
+  //
+  //     return categories;
+  //   } catch (e) {
+  //     print("Get Categories Error: $e");
+  //     // Return default categories on error
+  //     return [
+  //       {'name': 'Study', 'icon': Icons.book},
+  //       {'name': 'Fitness', 'icon': Icons.fitness_center},
+  //       {'name': 'Spiritual', 'icon': Icons.self_improvement},
+  //       {'name': 'Mental Health', 'icon': Icons.psychology},
+  //     ];
+  //   }
+  // }
+
+
   Future<List<Map<String, dynamic>>> getCategories() async {
     try {
       var db = await getDB();
@@ -273,7 +322,7 @@ class DB_helper {
         'SELECT DISTINCT $column_category AS name FROM $table_name WHERE $column_category IS NOT NULL',
       );
 
-      // Map category names to a list with icons
+      // Define default categories with icons
       const Map<String, IconData> categoryIcons = {
         'Study': Icons.book,
         'Fitness': Icons.fitness_center,
@@ -281,23 +330,26 @@ class DB_helper {
         'Mental Health': Icons.psychology,
       };
 
-      // Convert the result to List<Map<String, dynamic>> with icons
-      List<Map<String, dynamic>> categories = result.map((category) {
-        String categoryName = category['name'] as String;
+      // Convert database results to a set of category names
+      Set<String> dbCategories = result.map((category) => category['name'] as String).toSet();
+
+      // Create a list of categories, starting with default categories
+      List<Map<String, dynamic>> categories = categoryIcons.entries.map((entry) {
         return {
-          'name': categoryName,
-          'icon': categoryIcons[categoryName] ?? Icons.category, // Fallback icon
+          'name': entry.key,
+          'icon': entry.value,
         };
       }).toList();
 
-      // If no categories are found, return default categories
-      if (categories.isEmpty) {
-        categories = [
-          {'name': 'Study', 'icon': Icons.book},
-          {'name': 'Fitness', 'icon': Icons.fitness_center},
-          {'name': 'Spiritual', 'icon': Icons.self_improvement},
-          {'name': 'Mental Health', 'icon': Icons.psychology},
-        ];
+      // Add any additional categories from the database that aren't in the default list
+      for (var category in result) {
+        String categoryName = category['name'] as String;
+        if (!categoryIcons.containsKey(categoryName)) {
+          categories.add({
+            'name': categoryName,
+            'icon': Icons.category, // Fallback icon for custom categories
+          });
+        }
       }
 
       return categories;

@@ -7,7 +7,6 @@ void main() {
 
 class HabitTrackerApp extends StatelessWidget {
   HabitTrackerApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
