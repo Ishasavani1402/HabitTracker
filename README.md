@@ -1,6 +1,7 @@
 # Introduction
 
-->this is Habittracker app. in this app user can register their self and set habit category wise .. daily mark their habit and all their data keep persistance in database. 
+->this is Habittracker app. in this app user can register their self and set habit category wise .. <br>
+->daily mark their habit and all their data keep save  in database. 
 
 # Feature
 
