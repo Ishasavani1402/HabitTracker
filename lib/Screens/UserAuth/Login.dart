@@ -4,7 +4,6 @@ import 'package:habittracker/Screens/UserAuth/Registration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../database/DB_helper.dart';
 import '../BottomNavbar.dart';
-import '../BottomNavbar/HomeScreen.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});

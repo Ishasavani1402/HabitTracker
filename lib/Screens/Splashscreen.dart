@@ -4,8 +4,6 @@ import 'package:habittracker/Screens/UserAuth/Login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'BottomNavbar.dart';
-import 'UserAuth/Registration.dart';
-
 class Splashscreen extends StatefulWidget {
   const Splashscreen({super.key});
 
