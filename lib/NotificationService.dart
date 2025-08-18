@@ -65,7 +65,7 @@ class NotificationService {
       habitId + 1000, // Unique ID for reminders
       'Don\'t Forget!',
       'You haven\'t marked "$habitName" for today. Complete it now! ⏰',
-      tz.TZDateTime.now(tz.local).add(const Duration(hours: 20)), // Schedule at 8 PM
+      tz.TZDateTime.now(tz.local).add(const Duration(hours: 19)), // Schedule at 7 PM
       platformChannelSpecifics,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Required parameter
     );
