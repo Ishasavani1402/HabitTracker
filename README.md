@@ -1,16 +1,14 @@
-# habittracker
+# Introduction
 
-A new Flutter project.
+->this is Habittracker app. in this app user can register their self and set habit category wise .. <br>
+->daily mark their habit and all their data keep save  in database. 
 
-## Getting Started
+# Feature
 
-This project is a starting point for a Flutter application.
+-> Add,update,delete habit data.<br>
+-> daily mark done their habit ...
+-> user can show their all day to day habit  
 
-A few resources to get you started if this is your first Flutter project:
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+https://github.com/user-attachments/assets/ec6591ea-d854-4b8d-a1bf-1897f6859f6e
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
