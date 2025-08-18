@@ -126,7 +126,7 @@ class _HabitcalenderState extends State<Habitcalender> {
                                   _calendarFormat = format; // Update format on change
                                 });
                               },
-                              availableCalendarFormats: const {
+                              availableCalendarFormats: {
                                 CalendarFormat.month: 'Month',
                                 CalendarFormat.twoWeeks: '2 Weeks',
                                 CalendarFormat.week: 'Week',
