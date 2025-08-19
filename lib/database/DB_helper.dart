@@ -14,7 +14,8 @@ class DB_helper {
   static final colum_id = "id";
   static final colum_name = "Habitname";
   static final colum_iscomplate = "iscomplete";
-  static final column_category = "category";// add new column after table create
+  static final column_category =
+      "category"; // add new column after table create
 
   //for table habit log
   static final table_habit_log = "habit_log";
@@ -44,7 +45,10 @@ class DB_helper {
 
   Future<Database> openDB() async {
     Directory appdr = await getApplicationDocumentsDirectory(); // app direcory
-    String dbpath = join(appdr.path, "mydatabase.db",); // database directory path
+    String dbpath = join(
+      appdr.path,
+      "mydatabase.db",
+    ); // database directory path
 
     return await openDatabase(
       dbpath,
@@ -62,9 +66,11 @@ class DB_helper {
         );
 
         //habit log table
-        db.execute("create table $table_habit_log ($colum_id integer primary key autoincrement,"
-            "$colum_habit_id integer , $colum_date text , $colum_status integer,"
-            "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id)");
+        db.execute(
+          "create table $table_habit_log ($colum_id integer primary key autoincrement,"
+          "$colum_habit_id integer , $colum_date text , $colum_status integer,"
+          "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id)",
+        );
       },
       version: 5,
       onUpgrade: (db, oldversion, newversion) async {
@@ -77,17 +83,15 @@ class DB_helper {
         if (oldversion < 3) {
           await db.execute(
             "CREATE TABLE $table_habit_log ($colum_id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                "$colum_habit_id INTEGER, $colum_date TEXT, $colum_status INTEGER, "
-                "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id))",
+            "$colum_habit_id INTEGER, $colum_date TEXT, $colum_status INTEGER, "
+            "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id))",
           );
         }
-        if(oldversion < 4){
+        if (oldversion < 4) {
           // Add category column to existing myhabit table
-          await db.execute(
-            "ALTER TABLE $table_name ADD $column_category TEXT",
-          );
+          await db.execute("ALTER TABLE $table_name ADD $column_category TEXT");
         }
-        if(oldversion < 5){
+        if (oldversion < 5) {
           // add username column to existing myuser table
           await db.execute('ALTER TABLE $table_user ADD $column_username text');
         }
@@ -99,12 +103,16 @@ class DB_helper {
   // after database operation (insert , update , delete) when database execute query it return row affected (how many row affected)
 
   //add data to database (insert)
-  Future<bool> adddata({required String name, required String category,required int iscomplate}) async {
+  Future<bool> adddata({
+    required String name,
+    required String category,
+    required int iscomplate,
+  }) async {
     try {
       var db = await getDB();
       int rowaffect = await db.insert(table_name, {
         colum_name: name,
-        column_category : category,// add category
+        column_category: category, // add category
         colum_iscomplate: iscomplate,
       });
       return rowaffect > 0;
@@ -128,7 +136,9 @@ class DB_helper {
   }
 
   //update habit data
-  Future<bool> updatehabitdata({required int id, required String name,
+  Future<bool> updatehabitdata({
+    required int id,
+    required String name,
     // required String category,
     required int iscomplate,
   }) async {
@@ -149,8 +159,16 @@ class DB_helper {
   Future<bool> deletehabitdata({required int id}) async {
     try {
       var db = await getDB();
-      await db.delete(table_habit_log, where: '$colum_habit_id = ?', whereArgs: [id]);
-      int rowAffect = await db.delete(table_name, where: '$colum_id = ?', whereArgs: [id]);
+      await db.delete(
+        table_habit_log,
+        where: '$colum_habit_id = ?',
+        whereArgs: [id],
+      );
+      int rowAffect = await db.delete(
+        table_name,
+        where: '$colum_id = ?',
+        whereArgs: [id],
+      );
       return rowAffect > 0;
     } catch (e) {
       print("Delete Error : $e");
@@ -159,8 +177,12 @@ class DB_helper {
   }
 
   //add daily habit logs
-  Future<bool> adddailyhabitlog({required int habitid , required String date , required int status})async{
-    try{
+  Future<bool> adddailyhabitlog({
+    required int habitid,
+    required String date,
+    required int status,
+  }) async {
+    try {
       var db = await getDB();
       // Check if log exists for the habit and date
       var existingLog = await db.query(
@@ -168,7 +190,7 @@ class DB_helper {
         where: '$colum_habit_id = ? AND $colum_date = ?',
         whereArgs: [habitid, date],
       );
-      if(existingLog.isNotEmpty){
+      if (existingLog.isNotEmpty) {
         // Update existing log
         int rowAffect = await db.update(
           table_habit_log,
@@ -177,7 +199,7 @@ class DB_helper {
           whereArgs: [habitid, date],
         );
         return rowAffect > 0;
-      }else{
+      } else {
         // Insert new log
         int rowAffect = await db.insert(table_habit_log, {
           colum_habit_id: habitid,
@@ -186,54 +208,49 @@ class DB_helper {
         });
         return rowAffect > 0;
       }
-    }catch(e){
+    } catch (e) {
       print("Add Habit Log Error: $e");
       return false;
-
     }
-
-
   }
 
-
   // Fetch habit logs for a specific habit
-  Future<List<Map<String , dynamic>>> gethabitlog(int habitid)async{
-    try{
+  Future<List<Map<String, dynamic>>> gethabitlog(int habitid) async {
+    try {
       var db = await getDB();
       return await db.query(
         table_habit_log,
         where: '$colum_habit_id = ?',
         whereArgs: [habitid],
       );
-    }catch(e){
+    } catch (e) {
       print("Get Habit Logs Error: $e");
       return [];
     }
-
   }
-
 
   //fetch habit log for specific date
 
-  Future<List<Map<String , dynamic>>> gethabitlogbydate(String date)async{
-    try{
+  Future<List<Map<String, dynamic>>> gethabitlogbydate(String date) async {
+    try {
       var db = await getDB();
       return await db.query(
         table_habit_log,
         where: '$colum_date = ?',
         whereArgs: [date],
       );
-    }catch(e){
+    } catch (e) {
       print("Get Habit Logs by date Error: $e");
       return [];
     }
-
   }
 
-
-
-//Add new user
-  Future<bool> adduser({required String username ,required String email, required String password,}) async {
+  //Add new user
+  Future<bool> adduser({
+    required String username,
+    required String email,
+    required String password,
+  }) async {
     try {
       var db = await getDB();
       int rowaffect = await db.insert(table_user, {
@@ -280,15 +297,14 @@ class DB_helper {
       };
 
       // Convert database results to a set of category names
-      Set<String> dbCategories = result.map((category) => category['name'] as String).toSet();
+      Set<String> dbCategories =
+          result.map((category) => category['name'] as String).toSet();
 
       // Create a list of categories, starting with default categories
-      List<Map<String, dynamic>> categories = categoryIcons.entries.map((entry) {
-        return {
-          'name': entry.key,
-          'icon': entry.value,
-        };
-      }).toList();
+      List<Map<String, dynamic>> categories =
+          categoryIcons.entries.map((entry) {
+            return {'name': entry.key, 'icon': entry.value};
+          }).toList();
 
       // Add any additional categories from the database that aren't in the default list
       for (var category in result) {
@@ -320,7 +336,9 @@ class DB_helper {
       var db = await getDB();
       DateTime now = DateTime.now();
       String today = DateFormat('yyyy-MM-dd').format(now);
-      String fiveDaysAgo = DateFormat('yyyy-MM-dd').format(now.subtract(Duration(days: 4)));
+      String fiveDaysAgo = DateFormat(
+        'yyyy-MM-dd',
+      ).format(now.subtract(Duration(days: 4)));
 
       List<Map<String, dynamic>> logs = await db.query(
         table_habit_log,
@@ -334,8 +352,12 @@ class DB_helper {
       bool hasFiveConsecutive = true;
       DateTime currentDay = now;
       for (int i = 0; i < 5; i++) {
-        String expectedDate = DateFormat('yyyy-MM-dd').format(currentDay.subtract(Duration(days: i)));
-        bool found = logs.any((log) => log[colum_date] == expectedDate && log[colum_status] == 1);
+        String expectedDate = DateFormat(
+          'yyyy-MM-dd',
+        ).format(currentDay.subtract(Duration(days: i)));
+        bool found = logs.any(
+          (log) => log[colum_date] == expectedDate && log[colum_status] == 1,
+        );
         if (!found) {
           hasFiveConsecutive = false;
           break;

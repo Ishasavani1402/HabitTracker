@@ -64,6 +64,9 @@ class NotificationService {
     await _flutterLocalNotificationPlugin.zonedSchedule(
       habitId + 1000, // Unique ID for reminders
       'Don\'t Forget!',
+
+
+
       'You haven\'t marked "$habitName" for today. Complete it now! ⏰',
       tz.TZDateTime.now(tz.local).add(const Duration(hours: 19)), // Schedule at 7 PM
       platformChannelSpecifics,
