@@ -54,94 +54,63 @@ class _BottomnavbarState extends State<Bottomnavbar> {
 
   @override
   Widget build(BuildContext context) {
+    // List of screens to be displayed
+    final List<Widget> _screens = [
+      Habitcategory(),
+      const Homescreen(),
+      Habitcalender(habits: allhabitdata),
+    ];
+
     return Scaffold(
-      extendBody: true, // This is key to making the body extend behind the navigation bar
-      body: Stack(
-        children: [
-          // Main screen content (takes up all available space)
-          IndexedStack(
-            index: _selectedIndex,
-            children: [
-              Habitcategory(),
-              const Homescreen(),
-              Habitcalender(habits: allhabitdata),
-            ],
+      // extendBody: true, // This is still important for a full-screen background
+      body: _screens[_selectedIndex],
+      bottomNavigationBar: Container(
+        height: 80,
+        // margin: const EdgeInsets.only(left: 10, right: 10, bottom: 20), // Adds margin to the container
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: [startColor, endColor],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          // Custom Bottom Navigation Bar positioned at the bottom
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              height: 80,
-              // margin: const EdgeInsets.symmetric(horizontal: 10,),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  colors: [startColor, endColor],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 2,
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: Colors.grey.withOpacity(0.5),
+          //     spreadRadius: 2,
+          //     blurRadius: 10,
+          //     offset: const Offset(0, 5),
+          //   ),
+          // ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20), // Match the container's border radius
+          child: BottomNavigationBar(
+            backgroundColor: Colors.transparent, // Make the background transparent
+            elevation: 0, // Remove the default shadow
+            selectedItemColor: Colors.white,
+            unselectedItemColor: Colors.white70,
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            type: BottomNavigationBarType.fixed, // Use fixed type for consistent item size
+            items: List.generate(
+              _icons.length,
+                  (index) => BottomNavigationBarItem(
+                icon: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: _selectedIndex == index ? Colors.white.withOpacity(0.2) : Colors.transparent,
+                    borderRadius: BorderRadius.circular(15),
                   ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: List.generate(
-                  _icons.length,
-                      (index) {
-                    final isSelected = _selectedIndex == index;
-                    return Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(20),
-                          onTap: () => _onItemTapped(index),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                  padding: const EdgeInsets.all(8.0),
-                                  decoration: BoxDecoration(
-                                    color: isSelected ? Colors.white.withOpacity(0.2) : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                  child: Icon(
-                                    _icons[index],
-                                    color: isSelected ? Colors.white : Colors.white70,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _labels[index],
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                    color: isSelected ? Colors.white : Colors.white70,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                  child: Icon(_icons[index], size: 24),
                 ),
+                label: _labels[index],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }

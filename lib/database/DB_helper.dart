@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
@@ -100,7 +101,8 @@ class DB_helper {
     // table or add new column in table then we change version (for that case version is necessary)
   }
 
-  // after database operation (insert , update , delete) when database execute query it return row affected (how many row affected)
+  // after database operation (insert , update , delete)
+  // when database execute query it return row affected (how many row affected)
 
   //add data to database (insert)
   Future<bool> adddata({
@@ -330,60 +332,83 @@ class DB_helper {
     }
   }
 
-  // Check for 5 consecutive days of completion
-  Future<bool> hasConsecutiveCompletion(int habitId, String habitName) async {
+  Future<int> getcurrentstreak() async {
     try {
       var db = await getDB();
       DateTime now = DateTime.now();
-      String today = DateFormat('yyyy-MM-dd').format(now);
-      String fiveDaysAgo = DateFormat(
-        'yyyy-MM-dd',
-      ).format(now.subtract(Duration(days: 4)));
+      int streak = 0;
+      String currentdate = DateFormat('yyyy-MM-dd').format(now);
 
-      List<Map<String, dynamic>> logs = await db.query(
-        table_habit_log,
-        where: '$colum_habit_id = ? AND $colum_date >= ? AND $colum_date <= ?',
-        whereArgs: [habitId, fiveDaysAgo, today],
-        orderBy: '$colum_date DESC',
-      );
-
-      if (logs.length < 5) return false;
-
-      bool hasFiveConsecutive = true;
-      DateTime currentDay = now;
-      for (int i = 0; i < 5; i++) {
-        String expectedDate = DateFormat(
-          'yyyy-MM-dd',
-        ).format(currentDay.subtract(Duration(days: i)));
-        bool found = logs.any(
-          (log) => log[colum_date] == expectedDate && log[colum_status] == 1,
+      while (true) {
+        List<Map<String, dynamic>> logs = await db.query(
+          table_habit_log,
+          where: "$colum_habit_id = ? AND $colum_date = ?",
+          whereArgs: [currentdate, 1],
         );
-        if (!found) {
-          hasFiveConsecutive = false;
-          break;
-        }
-      }
 
-      return hasFiveConsecutive;
+        bool hasCompletedHabit = logs.isNotEmpty;
+
+        if (!hasCompletedHabit) {
+          break; // Break if no habits were completed on this day
+        }
+
+        streak++; // Increment streak if at least one habit was completed
+        now = now.subtract(Duration(days: 1));
+        currentdate = DateFormat('yyyy-MM-dd').format(now);
+      }
+      return streak;
     } catch (e) {
-      print("Check Consecutive Completion Error: $e");
-      return false;
+      print("Get current streak error : $e");
+      return 0;
     }
   }
 
-  // Check if habit status is missing for today
-  Future<bool> isHabitStatusMissing(int habitId, String today) async {
+  bool _isConsecutive(DateTime prevDate, DateTime currentDate) {
+    return currentDate.difference(prevDate).inDays == 1;
+  }
+
+  Future<int> getlongeststreak() async {
     try {
       var db = await getDB();
       List<Map<String, dynamic>> logs = await db.query(
         table_habit_log,
-        where: '$colum_habit_id = ? AND $colum_date = ?',
-        whereArgs: [habitId, today],
+        where: '$colum_status = ?',
+        whereArgs: [1],
+        orderBy: '$colum_date ASC',
       );
-      return logs.isEmpty; // Return true if no log exists for today
+      if (logs.isEmpty) return 0;
+      int currentstrak = 0;
+      int longeststreak = 0;
+
+      DateTime? prevDate;
+
+      // Group logs by date to check if any habit was completed on each day
+      Map<String, List<Map<String, dynamic>>> logsByDate = {};
+      for (var log in logs) {
+        String date = log[colum_date];
+        if (!logsByDate.containsKey(date)) {
+          logsByDate[date] = [];
+        }
+        logsByDate[date]!.add(log);
+      }
+      List<DateTime> completedDates = logsByDate.keys
+          .map((date) => DateTime.parse(date))
+          .toList()
+        ..sort((a, b) => a.compareTo(b));
+
+      for (var logDate in completedDates) {
+        if (prevDate == null || _isConsecutive(prevDate!, logDate)) {
+          currentstrak++;
+        } else {
+          currentstrak = 1; // Reset streak if not consecutive
+        }
+        longeststreak = currentstrak > longeststreak ? currentstrak : longeststreak;
+        prevDate = logDate;
+      }
+      return longeststreak;
     } catch (e) {
-      print("Check Missing Status Error: $e");
-      return false;
+      print("get current streak error");
+      return 0;
     }
   }
 }
