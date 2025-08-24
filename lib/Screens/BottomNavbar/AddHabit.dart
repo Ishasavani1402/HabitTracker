@@ -18,9 +18,6 @@ class _AddhabitState extends State<Addhabit> {
   final TextEditingController _habitController = TextEditingController();
   DB_helper? dbref;
 
-  final Color startColor = const Color(0xFF667eea);
-  final Color endColor = const Color(0xFF764ba2);
-
   @override
   void initState() {
     super.initState();
@@ -40,16 +37,22 @@ class _AddhabitState extends State<Addhabit> {
     String habitName = _habitController.text.trim();
     if (habitName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a habit name"),
-        backgroundColor: Colors.yellow,
-        behavior: SnackBarBehavior.floating,),
+        SnackBar(
+          content: const Text("Please enter a habit name"),
+          backgroundColor: Theme.of(context).colorScheme.error, // Theme-aware error color
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
     if (widget.category == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No category selected")),
+        SnackBar(
+          content: const Text("No category selected"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
@@ -76,11 +79,9 @@ class _AddhabitState extends State<Addhabit> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.habitId == null
-                ? "Habit added successfully"
-                : "Habit updated successfully",
+            widget.habitId == null ? "Habit added successfully" : "Habit updated successfully",
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).colorScheme.primary, // Theme-aware success color
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -88,11 +89,9 @@ class _AddhabitState extends State<Addhabit> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            widget.habitId == null
-                ? "Failed to add habit"
-                : "Failed to update habit",
+            widget.habitId == null ? "Failed to add habit" : "Failed to update habit",
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -105,10 +104,14 @@ class _AddhabitState extends State<Addhabit> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [startColor.withOpacity(0.9), endColor.withOpacity(0.9)],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -126,7 +129,7 @@ class _AddhabitState extends State<Addhabit> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      icon: Icon(Icons.arrow_back_ios, color: Theme.of(context).colorScheme.onPrimary),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     SizedBox(width: screenWidth * 0.02),
@@ -135,13 +138,13 @@ class _AddhabitState extends State<Addhabit> {
                       style: GoogleFonts.poppins(
                         fontSize: screenWidth * 0.065,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                   ],
                 ),
               ),
-              // Main content area with white background
+              // Main content area
               Expanded(
                 child: Container(
                   width: screenWidth,
@@ -149,9 +152,9 @@ class _AddhabitState extends State<Addhabit> {
                     horizontal: screenWidth * 0.05,
                     vertical: screenHeight * 0.03,
                   ),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(40),
                       topRight: Radius.circular(40),
                     ),
@@ -166,7 +169,7 @@ class _AddhabitState extends State<Addhabit> {
                             style: GoogleFonts.poppins(
                               fontSize: screenWidth * 0.045,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                           SizedBox(width: screenWidth * 0.02),
@@ -176,14 +179,14 @@ class _AddhabitState extends State<Addhabit> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: startColor.withOpacity(0.1),
+                              color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
                               widget.category ?? 'None',
                               style: GoogleFonts.poppins(
                                 fontSize: screenWidth * 0.04,
-                                color: startColor,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -191,29 +194,28 @@ class _AddhabitState extends State<Addhabit> {
                         ],
                       ),
                       SizedBox(height: screenHeight * 0.02),
-
                       // Habit Name input field
                       Text(
                         "Habit Name",
                         style: GoogleFonts.poppins(
                           fontSize: screenWidth * 0.045,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.01),
                       TextField(
                         controller: _habitController,
-                        style: GoogleFonts.poppins(),
+                        style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: "Enter habit name (e.g., Read a book)",
-                          hintStyle: GoogleFonts.poppins(color: Colors.grey[400]),
+                          hintStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Colors.grey[200],
+                          fillColor: Theme.of(context).cardColor, // Theme-aware fill color
                           contentPadding: EdgeInsets.symmetric(
                             vertical: screenHeight * 0.02,
                             horizontal: screenWidth * 0.05,
@@ -221,7 +223,6 @@ class _AddhabitState extends State<Addhabit> {
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.025),
-                      // Category display
                       // Save/Update button
                       Container(
                         width: double.infinity,
@@ -229,13 +230,16 @@ class _AddhabitState extends State<Addhabit> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
                           gradient: LinearGradient(
-                            colors: [startColor, endColor],
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.secondary,
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: endColor.withOpacity(0.4),
+                              color: Theme.of(context).colorScheme.secondary.withOpacity(0.4),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -252,7 +256,7 @@ class _AddhabitState extends State<Addhabit> {
                                 style: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.05,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                             ),

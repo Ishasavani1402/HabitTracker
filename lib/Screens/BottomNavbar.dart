@@ -1,3 +1,5 @@
+// ignore_for_file: file_names, no_leading_underscores_for_local_identifiers, deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:habittracker/Screens/BottomNavbar/HabitCategory.dart';
@@ -29,9 +31,6 @@ class _BottomnavbarState extends State<Bottomnavbar> {
     'Calendar',
   ];
 
-  final Color startColor = const Color(0xFF667eea);
-  final Color endColor = const Color(0xFF764ba2);
-
   @override
   void initState() {
     super.initState();
@@ -54,45 +53,40 @@ class _BottomnavbarState extends State<Bottomnavbar> {
 
   @override
   Widget build(BuildContext context) {
-    // List of screens to be displayed
     final List<Widget> _screens = [
       Habitcategory(),
-      const Homescreen(),
+      const HomeScreen(),
       Habitcalender(habits: allhabitdata),
     ];
 
     return Scaffold(
-      // extendBody: true, // This is still important for a full-screen background
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Ensure consistent background
       body: _screens[_selectedIndex],
       bottomNavigationBar: Container(
         height: 80,
-        // margin: const EdgeInsets.only(left: 10, right: 10, bottom: 20), // Adds margin to the container
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
-            colors: [startColor, endColor],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          // boxShadow: [
-          //   BoxShadow(
-          //     color: Colors.grey.withOpacity(0.5),
-          //     spreadRadius: 2,
-          //     blurRadius: 10,
-          //     offset: const Offset(0, 5),
-          //   ),
-          // ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(20), // Match the container's border radius
+          borderRadius: BorderRadius.circular(20),
           child: BottomNavigationBar(
-            backgroundColor: Colors.transparent, // Make the background transparent
-            elevation: 0, // Remove the default shadow
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.white70,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            selectedItemColor: Theme.of(context).colorScheme.onPrimary, // Use onPrimary for contrast
+            unselectedItemColor: Theme.of(context).colorScheme.onPrimary.withOpacity(0.6), // Slightly faded for unselected
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
-            type: BottomNavigationBarType.fixed, // Use fixed type for consistent item size
+            type: BottomNavigationBarType.fixed,
+            selectedLabelStyle: GoogleFonts.poppins(fontSize: 12),
+            unselectedLabelStyle: GoogleFonts.poppins(fontSize: 12),
             items: List.generate(
               _icons.length,
                   (index) => BottomNavigationBarItem(
@@ -101,10 +95,18 @@ class _BottomnavbarState extends State<Bottomnavbar> {
                   curve: Curves.easeInOut,
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
-                    color: _selectedIndex == index ? Colors.white.withOpacity(0.2) : Colors.transparent,
+                    color: _selectedIndex == index
+                        ? Theme.of(context).colorScheme.onPrimary.withOpacity(0.2) // Use onPrimary for selected background
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(15),
                   ),
-                  child: Icon(_icons[index], size: 24),
+                  child: Icon(
+                    _icons[index],
+                    size: 24,
+                    color: _selectedIndex == index
+                        ? Theme.of(context).colorScheme.onPrimary // Selected icon color
+                        : Theme.of(context).colorScheme.onPrimary.withOpacity(0.6), // Unselected icon color
+                  ),
                 ),
                 label: _labels[index],
               ),

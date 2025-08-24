@@ -1,5 +1,6 @@
+// ignore_for_file: unused_local_variable
+
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart';
@@ -337,13 +338,13 @@ class DB_helper {
       var db = await getDB();
       DateTime now = DateTime.now();
       int streak = 0;
-      String currentdate = DateFormat('yyyy-MM-dd').format(now);
 
       while (true) {
+        String currentDate = DateFormat('yyyy-MM-dd').format(now);
         List<Map<String, dynamic>> logs = await db.query(
           table_habit_log,
-          where: "$colum_habit_id = ? AND $colum_date = ?",
-          whereArgs: [currentdate, 1],
+          where: '$colum_date = ? AND $colum_status = ?',
+          whereArgs: [currentDate, 1],
         );
 
         bool hasCompletedHabit = logs.isNotEmpty;
@@ -353,12 +354,11 @@ class DB_helper {
         }
 
         streak++; // Increment streak if at least one habit was completed
-        now = now.subtract(Duration(days: 1));
-        currentdate = DateFormat('yyyy-MM-dd').format(now);
+        now = now.subtract(const Duration(days: 1));
       }
       return streak;
     } catch (e) {
-      print("Get current streak error : $e");
+      print("Get current streak error: $e");
       return 0;
     }
   }

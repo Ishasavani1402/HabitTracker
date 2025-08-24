@@ -11,9 +11,6 @@ class Habitcategory extends StatefulWidget {
 }
 
 class _HabitcategoryState extends State<Habitcategory> with SingleTickerProviderStateMixin {
-  // Define the colors for the gradient
-  final Color startColor = const Color(0xFF667eea);
-  final Color endColor = const Color(0xFF764ba2);
   late AnimationController _animationController;
   List<Map<String, dynamic>> categories = [];
   bool isLoading = true;
@@ -43,7 +40,11 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to load categories: $e")),
+        SnackBar(
+          content: Text("Failed to load categories: $e"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -60,10 +61,14 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [startColor.withOpacity(0.9), endColor.withOpacity(0.9)],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -83,17 +88,17 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                   style: GoogleFonts.poppins(
                     fontSize: screenWidth * 0.065,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary, // Theme-aware text
                   ),
                 ),
               ),
-              // Main content area with white background
+              // Main content area
               Expanded(
                 child: Container(
                   width: screenWidth,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(40),
                       topRight: Radius.circular(40),
                     ),
@@ -104,9 +109,21 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                       topRight: Radius.circular(40),
                     ),
                     child: isLoading
-                        ? const Center(child: CircularProgressIndicator())
+                        ? Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    )
                         : categories.isEmpty
-                        ? const Center(child: Text("No categories found"))
+                        ? Center(
+                      child: Text(
+                        "No categories found",
+                        style: GoogleFonts.poppins(
+                          fontSize: screenWidth * 0.04,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                    )
                         : ListView.builder(
                       padding: EdgeInsets.symmetric(
                         vertical: screenHeight * 0.03,
@@ -132,11 +149,11 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                           child: Container(
                             margin: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).cardColor, // Theme-aware card color
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.grey.withOpacity(0.15),
+                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.15),
                                   spreadRadius: 1,
                                   blurRadius: 10,
                                   offset: const Offset(0, 5),
@@ -164,12 +181,12 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                                       Container(
                                         padding: const EdgeInsets.all(12),
                                         decoration: BoxDecoration(
-                                          color: startColor.withOpacity(0.1),
+                                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                                           borderRadius: BorderRadius.circular(15),
                                         ),
                                         child: Icon(
                                           categoryIcon,
-                                          color: startColor,
+                                          color: Theme.of(context).colorScheme.primary,
                                           size: screenWidth * 0.07,
                                         ),
                                       ),
@@ -179,7 +196,7 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                                         style: GoogleFonts.poppins(
                                           fontSize: screenWidth * 0.045,
                                           fontWeight: FontWeight.w600,
-                                          color: Colors.black87,
+                                          color: Theme.of(context).colorScheme.onSurface,
                                         ),
                                       ),
                                     ],

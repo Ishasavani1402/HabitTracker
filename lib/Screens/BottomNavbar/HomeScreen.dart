@@ -5,16 +5,18 @@ import 'package:habittracker/Screens/BottomNavbar/AddHabit.dart';
 import 'package:habittracker/Screens/UserAuth/Login.dart';
 import 'package:habittracker/database/DB_helper.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../theme_provider.dart';
 
-class Homescreen extends StatefulWidget {
-  const Homescreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<Homescreen> createState() => _HomescreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   DB_helper? dbref;
   List<Map<String, dynamic>> allhabitdata = [];
   List<Map<String, dynamic>> todayhabitlog = [];
@@ -22,16 +24,10 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
   String? username;
   bool _isLoading = true;
 
-  final NotificationService notificationService = NotificationService();
+  final FlutterNotification notificationService = FlutterNotification();
 
-
-  // Animation Controller
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
-
-  // Define the colors for the gradient
-  final Color startColor = const Color(0xFF667eea);
-  final Color endColor = const Color(0xFF764ba2);
 
   @override
   void initState() {
@@ -45,7 +41,7 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
       parent: _controller,
       curve: Curves.easeInOut,
     ));
-    notificationService.init();
+    notificationService.initNotification();
     getdata();
     loadusername();
   }
@@ -75,14 +71,14 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
               onPressed: () => Navigator.of(context).pop(false),
               child: Text(
                 "No",
-                style: GoogleFonts.poppins(color: endColor),
+                style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.secondary),
               ),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               child: Text(
                 "Yes",
-                style: GoogleFonts.poppins(color: startColor),
+                style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ],
@@ -108,18 +104,18 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
     if (success) {
       await getdata();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Habit status updated for today"),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.green,
+          backgroundColor: Theme.of(context).snackBarTheme.backgroundColor,
         ),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text("Failed to update habit status"),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
@@ -156,14 +152,14 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
               onPressed: () => Navigator.of(context).pop(false),
               child: Text(
                 "No",
-                style: GoogleFonts.poppins(color: endColor),
+                style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.secondary),
               ),
             ),
             TextButton(
               onPressed: () => Navigator.of(context).pop(true),
               child: Text(
                 "Yes",
-                style: GoogleFonts.poppins(color: startColor),
+                style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.primary),
               ),
             ),
           ],
@@ -182,9 +178,11 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
         MaterialPageRoute(builder: (context) => const Login()),
       );
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Logged out successfully"),
+        SnackBar(
+          content: Text("Logged out successfully"),
           behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.green,),
+          backgroundColor: Theme.of(context).snackBarTheme.backgroundColor,
+        ),
       );
     }
   }
@@ -208,28 +206,33 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final groupedHabits = _groupHabitsByCategory();
     final categories = groupedHabits.keys.toList();
+    final themeProvider = Provider.of<ThemeProvider>(context);
 
     return Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [startColor.withOpacity(0.9), endColor.withOpacity(0.9)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Custom AppBar Section with Streaks
-                Padding(
+      body: Container(
+        // Use scaffoldBackgroundColor for the entire screen to ensure consistency
+        color: Theme.of(context).scaffoldBackgroundColor,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Custom AppBar Section with Streaks
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                      Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: screenWidth * 0.05,
                     vertical: screenHeight * 0.02,
@@ -243,11 +246,12 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              SizedBox(height: screenHeight * .03,),
                               Text(
                                 "Hello,",
                                 style: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.05,
-                                  color: Colors.white70,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                               Text(
@@ -255,14 +259,30 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
                                 style: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.065,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                             ],
                           ),
-                          IconButton(
-                            onPressed: logout,
-                            icon: const Icon(Icons.logout, color: Colors.white),
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  themeProvider.toggleTheme();
+                                },
+                                icon: Icon(
+                                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: logout,
+                                icon: Icon(
+                                  Icons.logout,
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -277,7 +297,7 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
                                   "Current Streak: ...",
                                   style: GoogleFonts.poppins(
                                     fontSize: screenWidth * 0.04,
-                                    color: Colors.white70,
+                                    color: Theme.of(context).colorScheme.onPrimary,
                                   ),
                                 );
                               }
@@ -285,13 +305,12 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
                                 "Current Streak: ${snapshot.data ?? 0} days 🔥",
                                 style: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.04,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               );
                             },
                           ),
-                          // SizedBox(width: screenWidth * 0.05),
                           FutureBuilder<int>(
                             future: dbref!.getlongeststreak(),
                             builder: (context, snapshot) {
@@ -300,7 +319,7 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
                                   "Longest Streak: ...",
                                   style: GoogleFonts.poppins(
                                     fontSize: screenWidth * 0.04,
-                                    color: Colors.white70,
+                                    color: Theme.of(context).colorScheme.onPrimary,
                                   ),
                                 );
                               }
@@ -308,7 +327,7 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
                                 "Longest Streak: ${snapshot.data ?? 0} days 🏆",
                                 style: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.04,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               );
@@ -319,238 +338,233 @@ class _HomescreenState extends State<Homescreen> with SingleTickerProviderStateM
                     ],
                   ),
                 ),
-                // Main content area with white background
-                Expanded(
-                  child: Container(
-                    width: screenWidth,
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
-                      ),
+              ),
+              // Main content area
+              Expanded(
+                child: Container(
+                  width: screenWidth,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
                     ),
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(40),
-                        topRight: Radius.circular(40),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(40),
+                      topRight: Radius.circular(40),
+                    ),
+                    child: _isLoading
+                        ? Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      child: _isLoading
-                          ? const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF667eea),
-                        ),
-                      )
-                          : allhabitdata.isNotEmpty
-                          ? ListView.builder(
-                        padding: EdgeInsets.only(
-                          top: screenHeight * 0.03,
-                          bottom: screenHeight * 0.01,
-                        ),
-                        itemCount: categories.length,
-                        itemBuilder: (context, index) {
-                          String category = categories[index];
-                          List<Map<String, dynamic>> habits = groupedHabits[category]!;
+                    )
+                        : allhabitdata.isNotEmpty
+                        ? ListView.builder(
+                      padding: EdgeInsets.only(
+                        top: screenHeight * 0.03,
+                        bottom: screenHeight * 0.01,
+                      ),
+                      itemCount: categories.length,
+                      itemBuilder: (context, index) {
+                        String category = categories[index];
+                        List<Map<String, dynamic>> habits = groupedHabits[category]!;
 
-                          return FadeTransition(
-                            opacity: _fadeAnimation,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: screenWidth * 0.06,
-                                    vertical: screenHeight * 0.01,
-                                  ),
-                                  child: Text(
-                                    category,
-                                    style: GoogleFonts.poppins(
-                                      fontSize: screenWidth * 0.05,
-                                      fontWeight: FontWeight.bold,
-                                      color: endColor,
-                                    ),
+                        return FadeTransition(
+                          opacity: _fadeAnimation,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.06,
+                                  vertical: screenHeight * 0.01,
+                                ),
+                                child: Text(
+                                  category,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: screenWidth * 0.05,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.secondary,
                                   ),
                                 ),
-                                ...habits.map((habit) {
-                                  int habitId = habit[DB_helper.colum_id];
-                                  bool isCompletedToday = todayhabitlog.any(
-                                        (log) =>
-                                    log[DB_helper.colum_habit_id] == habitId &&
-                                        log[DB_helper.colum_status] == 1,
-                                  );
+                              ),
+                              ...habits.map((habit) {
+                                int habitId = habit[DB_helper.colum_id];
+                                bool isCompletedToday = todayhabitlog.any(
+                                      (log) =>
+                                  log[DB_helper.colum_habit_id] == habitId &&
+                                      log[DB_helper.colum_status] == 1,
+                                );
 
-                                  return AnimatedContainer(
-                                    duration: const Duration(milliseconds: 300),
-                                    margin: EdgeInsets.symmetric(
-                                      horizontal: screenWidth * 0.05,
+                                return AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  margin: EdgeInsets.symmetric(
+                                    horizontal: screenWidth * 0.05,
+                                    vertical: screenHeight * 0.005,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isCompletedToday
+                                        ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                        : Theme.of(context).cardColor,
+                                    borderRadius: BorderRadius.circular(15),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                                        spreadRadius: 1,
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ListTile(
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: screenWidth * 0.04,
                                       vertical: screenHeight * 0.005,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: isCompletedToday
-                                          ? startColor.withOpacity(0.1)
-                                          : Colors.grey[100],
-                                      borderRadius: BorderRadius.circular(15),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withOpacity(0.1),
-                                          spreadRadius: 1,
-                                          blurRadius: 5,
-                                          offset: const Offset(0, 3),
+                                    leading: GestureDetector(
+                                      onTap: () => _toggleHabitCompletion(habit),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(5),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: isCompletedToday
+                                                ? Theme.of(context).colorScheme.primary
+                                                : Theme.of(context).colorScheme.onSurface,
+                                            width: 2,
+                                          ),
+                                          color: isCompletedToday
+                                              ? Theme.of(context).colorScheme.primary
+                                              : Colors.transparent,
+                                        ),
+                                        child: Icon(
+                                          isCompletedToday
+                                              ? Icons.check
+                                              : Icons.circle_outlined,
+                                          color: isCompletedToday
+                                              ? Theme.of(context).colorScheme.onPrimary
+                                              : Theme.of(context).colorScheme.onSurface,
+                                          size: screenWidth * 0.06,
+                                        ),
+                                      ),
+                                    ),
+                                    title: Text(
+                                      habit[DB_helper.colum_name],
+                                      style: GoogleFonts.poppins(
+                                        fontSize: screenWidth * 0.042,
+                                        fontWeight: FontWeight.w600,
+                                        color: isCompletedToday
+                                            ? Theme.of(context).colorScheme.primary
+                                            : Theme.of(context).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    subtitle: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        SizedBox(height: screenHeight * 0.005),
+                                        Text(
+                                          isCompletedToday
+                                              ? "Completed Today"
+                                              : "Not Completed Today",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: screenWidth * 0.035,
+                                            color: isCompletedToday
+                                                ? Theme.of(context).colorScheme.primary
+                                                : Theme.of(context).colorScheme.onSurface,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
                                       ],
                                     ),
-                                    child: ListTile(
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: screenWidth * 0.04,
-                                        vertical: screenHeight * 0.005,
-                                      ),
-                                      leading: GestureDetector(
-                                        onTap: () => _toggleHabitCompletion(habit),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: isCompletedToday
-                                                  ? startColor
-                                                  : Colors.grey.shade400,
-                                              width: 2,
-                                            ),
-                                            color: isCompletedToday
-                                                ? startColor
-                                                : Colors.transparent,
-                                          ),
-                                          child: Icon(
-                                            isCompletedToday
-                                                ? Icons.check
-                                                : Icons.circle_outlined,
-                                            color: isCompletedToday
-                                                ? Colors.white
-                                                : Colors.grey.shade400,
-                                            size: screenWidth * 0.06,
-                                          ),
-                                        ),
-                                      ),
-                                      title: Text(
-                                        habit[DB_helper.colum_name],
-                                        style: GoogleFonts.poppins(
-                                          fontSize: screenWidth * 0.042,
-                                          fontWeight: FontWeight.w600,
-                                          color: isCompletedToday
-                                              ? startColor
-                                              : Colors.black87,
-                                        ),
-                                      ),
-                                      subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          SizedBox(height: screenHeight * 0.005),
-                                          Text(
-                                            isCompletedToday
-                                                ? "Completed Today"
-                                                : "Not Completed Today",
-                                            style: GoogleFonts.poppins(
-                                              fontSize: screenWidth * 0.035,
-                                              color: isCompletedToday
-                                                  ? startColor
-                                                  : Colors.grey[600],
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      trailing: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            icon: Icon(Icons.edit, color: startColor),
-                                            onPressed: () async {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) => Addhabit(
-                                                    habitId: habit[DB_helper.colum_id],
-                                                    habitName:
-                                                    habit[DB_helper.colum_name],
-                                                    category:
-                                                    habit[DB_helper.column_category],
-                                                  ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
+                                          onPressed: () async {
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => Addhabit(
+                                                  habitId: habit[DB_helper.colum_id],
+                                                  habitName: habit[DB_helper.colum_name],
+                                                  category: habit[DB_helper.column_category],
                                                 ),
-                                              );
-                                              await getdata();
-                                            },
-                                          ),
-                                          IconButton(
-                                            icon:
-                                            const Icon(Icons.delete, color: Colors.red),
-                                            onPressed: () async {
-                                              bool? confirm =
-                                              await _showDeleteConfirmationDialog(
-                                                  habit[DB_helper.colum_name]);
-                                              if (confirm == true) {
-                                                bool success = await dbref!
-                                                    .deletehabitdata(
-                                                    id: habit[DB_helper.colum_id]);
-                                                if (success) {
-                                                  await getdata();
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                        content: Text(
-                                                            "Habit deleted successfully")),
-                                                  );
-                                                } else {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                        content: Text(
-                                                            "Failed to delete habit")),
-                                                  );
-                                                }
+                                              ),
+                                            );
+                                            await getdata();
+                                          },
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.delete, color: Theme.of(context).colorScheme.error),
+                                          onPressed: () async {
+                                            bool? confirm = await _showDeleteConfirmationDialog(
+                                                habit[DB_helper.colum_name]);
+                                            if (confirm == true) {
+                                              bool success = await dbref!.deletehabitdata(
+                                                  id: habit[DB_helper.colum_id]);
+                                              if (success) {
+                                                await getdata();
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text("Habit deleted successfully"),
+                                                    backgroundColor: Theme.of(context).snackBarTheme.backgroundColor,
+                                                  ),
+                                                );
+                                              } else {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text("Failed to delete habit"),
+                                                    backgroundColor: Theme.of(context).colorScheme.error,
+                                                  ),
+                                                );
                                               }
-                                            },
-                                          ),
-                                        ],
-                                      ),
+                                            }
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                  );
-                                }).toList(),
-                              ],
-                            ),
-                          );
-                        },
-                      )
-                          : Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.list_alt_outlined,
-                              size: screenWidth * 0.2,
-                              color: Colors.grey[300],
-                            ),
-                            SizedBox(height: screenHeight * 0.02),
-                            FadeTransition(
-                              opacity: _fadeAnimation,
-                              child: Text(
-                                "No Habits Found.\nStart your journey by adding one!",
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  fontSize: screenWidth * 0.04,
-                                  color: Colors.grey[500],
-                                ),
+                                  ),
+                                );
+                              }).toList(),
+                            ],
+                          ),
+                        );
+                      },
+                    )
+                        : Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.list_alt_outlined,
+                            size: screenWidth * 0.2,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          SizedBox(height: screenHeight * 0.02),
+                          FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: Text(
+                              "No Habits Found.\nStart your journey by adding one!",
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontSize: screenWidth * 0.04,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ));
-    }
+        ),
+      );
+  }
 }
-

@@ -1,76 +1,43 @@
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
+// ignore_for_file: file_names, avoid_print
 
-class NotificationService {
-  static final NotificationService _notificationService = NotificationService._internal();
+import 'package:firebase_messaging/firebase_messaging.dart';
 
-  final FlutterLocalNotificationsPlugin _flutterLocalNotificationPlugin = FlutterLocalNotificationsPlugin();
 
-  factory NotificationService() {
-    return _notificationService;
+class FlutterNotification {
+  final firebasemessage = FirebaseMessaging.instance;
+
+  void handlemessage(RemoteMessage? message) {
+    if (message == null) return;
+
+    // navigatorkey.currentState?.pushNamed(
+    //   '/HomeScreen',
+    //   arguments: message,
+    // );
   }
 
-  NotificationService._internal();
+  Future initpushnotifiction() async {
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
 
-  Future<void> init() async {
-    tz.initializeTimeZones();
-
-    const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings("@mipmap/ic_launcher");
-
-    const InitializationSettings initializationSettings =
-    InitializationSettings(android: initializationSettingsAndroid);
-
-    await _flutterLocalNotificationPlugin.initialize(initializationSettings);
+    FirebaseMessaging.instance.getInitialMessage().then(handlemessage);
+    FirebaseMessaging.onMessageOpenedApp.listen(handlemessage);
+    FirebaseMessaging.onBackgroundMessage(handlebackgroundmessage);
   }
 
-  Future<void> showMotivationalNotification(int habitId, String habitName) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(
-      'habit_motivational_channel',
-      'Motivational Notifications',
-      channelDescription: 'Notifications for achieving habit streaks',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: true,
-    );
-
-    const NotificationDetails platformChannelSpecifics =
-    NotificationDetails(android: androidPlatformChannelSpecifics);
-
-    await _flutterLocalNotificationPlugin.show(
-      habitId,
-      'Great Job!',
-      'You\'ve completed "$habitName" for 5 days in a row! Keep it up! 🎉',
-      platformChannelSpecifics,
-    );
+  Future<void> initNotification() async {
+    await firebasemessage.requestPermission();
+    final ftoken = await firebasemessage.getToken();
+    print("ftoken : $ftoken");
+    initpushnotifiction();
   }
+}
 
-  Future<void> scheduleReminderNotification(int habitId, String habitName) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(
-      'habit_reminder_channel',
-      'Reminder Notifications',
-      channelDescription: 'Notifications to remind you to mark your habits',
-      importance: Importance.max,
-      priority: Priority.high,
-      showWhen: true,
-    );
-
-    const NotificationDetails platformChannelSpecifics =
-    NotificationDetails(android: androidPlatformChannelSpecifics);
-
-    await _flutterLocalNotificationPlugin.zonedSchedule(
-      habitId + 1000, // Unique ID for reminders
-      'Don\'t Forget!',
-
-
-
-      'You haven\'t marked "$habitName" for today. Complete it now! ⏰',
-      tz.TZDateTime.now(tz.local).add(const Duration(hours: 19)), // Schedule at 7 PM
-      platformChannelSpecifics,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Required parameter
-    );
-  }
+Future<void> handlebackgroundmessage(RemoteMessage message) async {
+  print("title : ${message.notification?.title}");
+  print("body : ${message.notification?.body}");
+  print("payload : ${message.data}");
 }

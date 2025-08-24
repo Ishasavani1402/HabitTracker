@@ -18,10 +18,7 @@ class _HabitcalenderState extends State<Habitcalender> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   List<Map<String, dynamic>> _selectedDayLogs = [];
-  CalendarFormat _calendarFormat = CalendarFormat.month; // State variable for calendar format
-
-  final Color startColor = const Color(0xFF667eea);
-  final Color endColor = const Color(0xFF764ba2);
+  CalendarFormat _calendarFormat = CalendarFormat.month;
 
   @override
   void initState() {
@@ -45,10 +42,14 @@ class _HabitcalenderState extends State<Habitcalender> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [startColor.withOpacity(0.9), endColor.withOpacity(0.9)],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -65,29 +66,24 @@ class _HabitcalenderState extends State<Habitcalender> {
                 ),
                 child: Row(
                   children: [
-                    // IconButton(
-                    //   icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                    //   onPressed: () => Navigator.of(context).pop(),
-                    // ),
-                    // SizedBox(width: screenWidth * 0.02),
                     Text(
                       "Habit Calendar",
                       style: GoogleFonts.poppins(
                         fontSize: screenWidth * 0.065,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                     ),
                   ],
                 ),
               ),
-              // Main content area with white background
+              // Main content area
               Expanded(
                 child: Container(
                   width: screenWidth,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(40),
                       topRight: Radius.circular(40),
                     ),
@@ -104,9 +100,9 @@ class _HabitcalenderState extends State<Habitcalender> {
                           padding: EdgeInsets.all(screenWidth * 0.05),
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              color: Theme.of(context).cardColor, // Theme-aware card color
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.grey.shade200),
+                              border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2)),
                             ),
                             child: TableCalendar(
                               focusedDay: _focusedDay,
@@ -120,10 +116,10 @@ class _HabitcalenderState extends State<Habitcalender> {
                                 });
                                 _loadSelectedDayLogs();
                               },
-                              calendarFormat: _calendarFormat, // Use state variable
+                              calendarFormat: _calendarFormat,
                               onFormatChanged: (format) {
                                 setState(() {
-                                  _calendarFormat = format; // Update format on change
+                                  _calendarFormat = format;
                                 });
                               },
                               availableCalendarFormats: {
@@ -133,37 +129,37 @@ class _HabitcalenderState extends State<Habitcalender> {
                               },
                               calendarStyle: CalendarStyle(
                                 todayDecoration: BoxDecoration(
-                                  color: startColor,
+                                  color: Theme.of(context).colorScheme.primary,
                                   shape: BoxShape.circle,
                                 ),
                                 selectedDecoration: BoxDecoration(
-                                  color: endColor,
+                                  color: Theme.of(context).colorScheme.secondary,
                                   shape: BoxShape.circle,
                                 ),
-                                defaultTextStyle: GoogleFonts.poppins(color: Colors.black87),
-                                weekendTextStyle: GoogleFonts.poppins(color: Colors.black54),
-                                selectedTextStyle: GoogleFonts.poppins(color: Colors.white),
-                                todayTextStyle: GoogleFonts.poppins(color: Colors.white),
+                                defaultTextStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
+                                weekendTextStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)),
+                                selectedTextStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onPrimary),
+                                todayTextStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onPrimary),
                               ),
                               headerStyle: HeaderStyle(
-                                formatButtonVisible: true, // Show format button
+                                formatButtonVisible: true,
                                 formatButtonShowsNext: false,
                                 formatButtonDecoration: BoxDecoration(
-                                  color: startColor.withOpacity(0.1),
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 formatButtonTextStyle: GoogleFonts.poppins(
-                                  color: endColor,
+                                  color: Theme.of(context).colorScheme.secondary,
                                   fontSize: screenWidth * 0.04,
                                 ),
                                 titleCentered: true,
                                 titleTextStyle: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.04,
                                   fontWeight: FontWeight.bold,
-                                  color: endColor,
+                                  color: Theme.of(context).colorScheme.secondary,
                                 ),
-                                leftChevronIcon: Icon(Icons.chevron_left, color: endColor),
-                                rightChevronIcon: Icon(Icons.chevron_right, color: endColor),
+                                leftChevronIcon: Icon(Icons.chevron_left, color: Theme.of(context).colorScheme.secondary),
+                                rightChevronIcon: Icon(Icons.chevron_right, color: Theme.of(context).colorScheme.secondary),
                               ),
                             ),
                           ),
@@ -175,7 +171,7 @@ class _HabitcalenderState extends State<Habitcalender> {
                             style: GoogleFonts.poppins(
                               fontSize: screenWidth * 0.05,
                               fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              color: Theme.of(context).colorScheme.onSurface,
                             ),
                           ),
                         ),
@@ -192,17 +188,18 @@ class _HabitcalenderState extends State<Habitcalender> {
                                 orElse: () => {},
                               );
                               if (habit.isEmpty) return const SizedBox.shrink();
-                              bool isCompleted =
-                                  _selectedDayLogs[index][DB_helper.colum_status] == 1;
+                              bool isCompleted = _selectedDayLogs[index][DB_helper.colum_status] == 1;
 
                               return Container(
                                 margin: EdgeInsets.symmetric(vertical: screenHeight * 0.005),
                                 decoration: BoxDecoration(
-                                  color: isCompleted ? startColor.withOpacity(0.1) : Colors.grey[100],
+                                  color: isCompleted
+                                      ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                      : Theme.of(context).cardColor,
                                   borderRadius: BorderRadius.circular(15),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.grey.withOpacity(0.1),
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                                       spreadRadius: 1,
                                       blurRadius: 5,
                                       offset: const Offset(0, 3),
@@ -210,19 +207,22 @@ class _HabitcalenderState extends State<Habitcalender> {
                                   ],
                                 ),
                                 child: ListTile(
-                                  contentPadding:
-                                  EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
                                   title: Text(
                                     habit[DB_helper.colum_name] ?? "Unknown Habit",
                                     style: GoogleFonts.poppins(
                                       fontSize: screenWidth * 0.045,
                                       fontWeight: FontWeight.w500,
-                                      color: isCompleted ? startColor : Colors.black87,
+                                      color: isCompleted
+                                          ? Theme.of(context).colorScheme.primary
+                                          : Theme.of(context).colorScheme.onSurface,
                                     ),
                                   ),
                                   trailing: Icon(
                                     isCompleted ? Icons.check_circle_outline : Icons.cancel_outlined,
-                                    color: isCompleted ? Colors.green : Colors.red,
+                                    color: isCompleted
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.error,
                                     size: screenWidth * 0.06,
                                   ),
                                 ),
@@ -234,7 +234,7 @@ class _HabitcalenderState extends State<Habitcalender> {
                               "No habit logs for this day.",
                               style: GoogleFonts.poppins(
                                 fontSize: screenWidth * 0.04,
-                                color: Colors.grey[500],
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                               ),
                             ),
                           ),
