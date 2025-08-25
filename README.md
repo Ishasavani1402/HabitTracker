@@ -15,3 +15,5 @@
 -> flutter<br>
 -> dart<br>
 -> sqlite database
+
+<img width="183" height="402" alt="splashscreen" src="https://github.com/user-attachments/assets/8ba5b113-ee6b-4dda-b9c7-3fa3018eafc6" />
