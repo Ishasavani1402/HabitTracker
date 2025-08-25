@@ -6,9 +6,12 @@
 # Feature
 
 -> Add,update,delete habit data.<br>
--> daily mark done their habit ...
--> user can show their all day to day habit  
+-> daily mark done their habit ...<br>
+-> user can show their all day to day habit <br>
+-> can change app theme from light to dark and dark to light in whole app
 
+# Tack Stack
 
-https://github.com/user-attachments/assets/ec6591ea-d854-4b8d-a1bf-1897f6859f6e
-
+-> flutter<br>
+-> dart<br>
+-> sqlite database
