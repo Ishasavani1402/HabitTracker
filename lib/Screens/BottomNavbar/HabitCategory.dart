@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:habittracker/Screens/BottomNavbar/AddHabit.dart';
+import 'package:habittracker/Screens/UserAuth/Login.dart'; // Import Login screen
 import 'package:habittracker/database/DB_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Habitcategory extends StatefulWidget {
   const Habitcategory({super.key});
@@ -15,6 +17,7 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
   List<Map<String, dynamic>> categories = [];
   bool isLoading = true;
   DB_helper? dbref;
+  int? userId; // NEW: Store user_id
 
   @override
   void initState() {
@@ -24,12 +27,38 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    _loadCategories();
+    _loadUserIdAndCategories(); // NEW: Load user_id and categories
+  }
+
+  // NEW: Load user_id from SharedPreferences and then fetch categories
+  Future<void> _loadUserIdAndCategories() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    setState(() {
+      userId = pref.getInt('user_id');
+    });
+
+    if (userId == null) {
+      // Redirect to Login screen if user_id is not found
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Login()),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Please log in to continue"),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    await _loadCategories();
   }
 
   Future<void> _loadCategories() async {
     try {
-      final fetchedCategories = await dbref!.getCategories();
+      final fetchedCategories = await dbref!.getCategories(userId!); // Pass userId
       setState(() {
         categories = fetchedCategories;
         isLoading = false;
@@ -61,8 +90,14 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
-      body: Container(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: userId == null
+          ? Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      )
+          : Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -88,7 +123,7 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                   style: GoogleFonts.poppins(
                     fontSize: screenWidth * 0.065,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onPrimary, // Theme-aware text
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
               ),
@@ -97,7 +132,7 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                 child: Container(
                   width: screenWidth,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
+                    color: Theme.of(context).scaffoldBackgroundColor,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(40),
                       topRight: Radius.circular(40),
@@ -149,7 +184,7 @@ class _HabitcategoryState extends State<Habitcategory> with SingleTickerProvider
                           child: Container(
                             margin: EdgeInsets.symmetric(vertical: screenHeight * 0.01),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor, // Theme-aware card color
+                              color: Theme.of(context).cardColor,
                               borderRadius: BorderRadius.circular(20),
                               boxShadow: [
                                 BoxShadow(

@@ -10,35 +10,34 @@ import 'package:sqflite/sqflite.dart';
 class DB_helper {
   DB_helper._(); // private constructor
 
-  static final DB_helper getInstance = DB_helper._(); // class ka object
-  //for table my habit
+  static final DB_helper getInstance = DB_helper._(); // singleton instance
+
+  // Table and column names for myhabit
   static final table_name = "myhabit";
   static final colum_id = "id";
   static final colum_name = "Habitname";
   static final colum_iscomplate = "iscomplete";
-  static final column_category =
-      "category"; // add new column after table create
+  static final column_category = "category";
+  static final foreign_key_user_id = "user_id";
 
-  //for table habit log
+  // Table and column names for habit_log
   static final table_habit_log = "habit_log";
-  static final colum_habit_id = "habit_id"; // Foreign key to myhabit
-  static final colum_date = "date"; // Date of the log
-  static final colum_status = "status"; // Completion status for the day
+  static final colum_habit_id = "habit_id";
+  static final colum_date = "date";
+  static final colum_status = "status";
 
-  //for user
+  // Table and column names for myuser
   static final table_user = "myuser";
-  static final colum_password = "password";
+  static final column_password = "password";
   static final colum_email = "email";
   static final column_username = 'username';
+  static final column_user_id = "user_id";
 
-  Database? mydatabase; //  sqlite database object(database ka khud ka object)
+  Database? mydatabase;
 
-  // open database (path check -> if exist then open else create new database)
-
-  // when app load first timr it will crate database and rest of time open
   Future<Database> getDB() async {
     if (mydatabase != null) {
-      return mydatabase!; // create new database
+      return mydatabase!;
     } else {
       mydatabase = await openDB();
       return mydatabase!;
@@ -46,67 +45,63 @@ class DB_helper {
   }
 
   Future<Database> openDB() async {
-    Directory appdr = await getApplicationDocumentsDirectory(); // app direcory
-    String dbpath = join(
-      appdr.path,
-      "mydatabase.db",
-    ); // database directory path
+    Directory appdr = await getApplicationDocumentsDirectory();
+    String dbpath = join(appdr.path, "mydatabase.db");
 
     return await openDatabase(
       dbpath,
-      onCreate: (db, version) {
-        //create habit table
-        db.execute(
-          "create table $table_name ($colum_id integer primary key autoincrement, "
-          "$colum_name text , $column_category text , $colum_iscomplate integer)",
+      onCreate: (db, version) async {
+        await db.execute(
+          "CREATE TABLE $table_user($column_user_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+              "$column_username TEXT, $colum_email TEXT UNIQUE, $column_password TEXT)",
         );
 
-        //user table
-        db.execute(
-          "create table $table_user ($column_username text ,$colum_email text unique,"
-          "$colum_password text)",
+        await db.execute(
+          "CREATE TABLE $table_name($colum_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+              "$colum_name TEXT, $column_category TEXT, $colum_iscomplate INTEGER, "
+              "$foreign_key_user_id INTEGER, FOREIGN KEY ($foreign_key_user_id) REFERENCES $table_user($column_user_id))",
         );
 
-        //habit log table
-        db.execute(
-          "create table $table_habit_log ($colum_id integer primary key autoincrement,"
-          "$colum_habit_id integer , $colum_date text , $colum_status integer,"
-          "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id)",
+        await db.execute(
+          "CREATE TABLE $table_habit_log($colum_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+              "$colum_habit_id INTEGER, $colum_date TEXT, $colum_status INTEGER, "
+              "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id))",
         );
       },
-      version: 5,
+      version: 6,
       onUpgrade: (db, oldversion, newversion) async {
         if (oldversion < 2) {
           await db.execute(
-            "create table $table_user ($colum_email text unique,"
-            "$colum_password text)",
+            "CREATE TABLE $table_user($colum_email TEXT UNIQUE, $column_password TEXT)",
           );
         }
         if (oldversion < 3) {
           await db.execute(
-            "CREATE TABLE $table_habit_log ($colum_id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "$colum_habit_id INTEGER, $colum_date TEXT, $colum_status INTEGER, "
-            "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id))",
+            "CREATE TABLE $table_habit_log($colum_id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                "$colum_habit_id INTEGER, $colum_date TEXT, $colum_status INTEGER, "
+                "FOREIGN KEY ($colum_habit_id) REFERENCES $table_name($colum_id))",
           );
         }
         if (oldversion < 4) {
-          // Add category column to existing myhabit table
           await db.execute("ALTER TABLE $table_name ADD $column_category TEXT");
         }
         if (oldversion < 5) {
-          // add username column to existing myuser table
-          await db.execute('ALTER TABLE $table_user ADD $column_username text');
+          await db.execute("ALTER TABLE $table_user ADD $column_username TEXT");
+        }
+        if (oldversion < 6) {
+          await db.execute("ALTER TABLE $table_user ADD $column_user_id INTEGER");
+          await db.execute(
+            'UPDATE $table_user SET $column_user_id = (SELECT COUNT(*) FROM $table_user AS t2 WHERE t2.rowid <= $table_user.rowid)',
+          );
+          await db.execute("ALTER TABLE $table_name ADD $foreign_key_user_id INTEGER");
+          await db.execute("UPDATE $table_name SET $foreign_key_user_id = 1 WHERE $foreign_key_user_id IS NULL");
         }
       },
-    ); // version 1 means database version when we add new
-    // table or add new column in table then we change version (for that case version is necessary)
+    );
   }
 
-  // after database operation (insert , update , delete)
-  // when database execute query it return row affected (how many row affected)
-
-  //add data to database (insert)
   Future<bool> adddata({
+    required int userId,
     required String name,
     required String category,
     required int iscomplate,
@@ -115,51 +110,54 @@ class DB_helper {
       var db = await getDB();
       int rowaffect = await db.insert(table_name, {
         colum_name: name,
-        column_category: category, // add category
+        column_category: category,
         colum_iscomplate: iscomplate,
+        foreign_key_user_id: userId,
       });
       return rowaffect > 0;
     } catch (e) {
-      print("Add Data Error : $e");
+      print("Add Data Error: $e");
       return false;
     }
   }
 
-  //  fetch all data
-  Future<List<Map<String, dynamic>>> getdata() async {
+  Future<List<Map<String, dynamic>>> getdata(int userid) async {
     try {
       var db = await getDB();
-      List<Map<String, dynamic>> data = await db.query(table_name);
-
+      List<Map<String, dynamic>> data = await db.query(
+        table_name,
+        where: "$foreign_key_user_id = ?",
+        whereArgs: [userid],
+      );
       return data;
     } catch (e) {
-      print("Error : $e");
+      print("Get Data Error: $e");
       return [];
     }
   }
 
-  //update habit data
   Future<bool> updatehabitdata({
     required int id,
+    required int userid,
     required String name,
-    // required String category,
     required int iscomplate,
   }) async {
     try {
       var db = await getDB();
-      int rowaffect = await db.update(table_name, {
-        colum_name: name,
-        colum_iscomplate: iscomplate,
-      }, where: '$colum_id = $id');
+      int rowaffect = await db.update(
+        table_name,
+        {colum_name: name, colum_iscomplate: iscomplate},
+        where: '$colum_id = ? AND $foreign_key_user_id = ?',
+        whereArgs: [id, userid],
+      );
       return rowaffect > 0;
     } catch (e) {
-      print("Update Error : $e");
+      print("Update Error: $e");
       return false;
     }
   }
 
-  //delete data
-  Future<bool> deletehabitdata({required int id}) async {
+  Future<bool> deletehabitdata({required int id, required int userid}) async {
     try {
       var db = await getDB();
       await db.delete(
@@ -169,17 +167,16 @@ class DB_helper {
       );
       int rowAffect = await db.delete(
         table_name,
-        where: '$colum_id = ?',
-        whereArgs: [id],
+        where: '$colum_id = ? AND $foreign_key_user_id = ?',
+        whereArgs: [id, userid],
       );
       return rowAffect > 0;
     } catch (e) {
-      print("Delete Error : $e");
+      print("Delete Error: $e");
       return false;
     }
   }
 
-  //add daily habit logs
   Future<bool> adddailyhabitlog({
     required int habitid,
     required String date,
@@ -187,14 +184,12 @@ class DB_helper {
   }) async {
     try {
       var db = await getDB();
-      // Check if log exists for the habit and date
       var existingLog = await db.query(
         table_habit_log,
         where: '$colum_habit_id = ? AND $colum_date = ?',
         whereArgs: [habitid, date],
       );
       if (existingLog.isNotEmpty) {
-        // Update existing log
         int rowAffect = await db.update(
           table_habit_log,
           {colum_status: status},
@@ -203,7 +198,6 @@ class DB_helper {
         );
         return rowAffect > 0;
       } else {
-        // Insert new log
         int rowAffect = await db.insert(table_habit_log, {
           colum_habit_id: habitid,
           colum_date: date,
@@ -217,7 +211,6 @@ class DB_helper {
     }
   }
 
-  // Fetch habit logs for a specific habit
   Future<List<Map<String, dynamic>>> gethabitlog(int habitid) async {
     try {
       var db = await getDB();
@@ -232,15 +225,14 @@ class DB_helper {
     }
   }
 
-  //fetch habit log for specific date
-
-  Future<List<Map<String, dynamic>>> gethabitlogbydate(String date) async {
+  Future<List<Map<String, dynamic>>> gethabitlogbydate(String date, int userid) async {
     try {
       var db = await getDB();
-      return await db.query(
-        table_habit_log,
-        where: '$colum_date = ?',
-        whereArgs: [date],
+      return await db.rawQuery(
+        'SELECT hl.* FROM $table_habit_log hl '
+            'INNER JOIN $table_name h ON hl.$colum_habit_id = h.$colum_id '
+            'WHERE hl.$colum_date = ? AND h.$foreign_key_user_id = ?',
+        [date, userid],
       );
     } catch (e) {
       print("Get Habit Logs by date Error: $e");
@@ -248,8 +240,7 @@ class DB_helper {
     }
   }
 
-  //Add new user
-  Future<bool> adduser({
+  Future<int> adduser({
     required String username,
     required String email,
     required String password,
@@ -259,12 +250,16 @@ class DB_helper {
       int rowaffect = await db.insert(table_user, {
         column_username: username,
         colum_email: email,
-        colum_password: password,
+        column_password: password,
       });
-      return rowaffect > 0;
+      if (rowaffect > 0) {
+        var result = await db.rawQuery('SELECT last_insert_rowid() as id');
+        return result.first['id'] as int;
+      }
+      return -1;
     } catch (e) {
-      print("Add User Error : $e");
-      return false;
+      print("Add User Error: $e");
+      return -1;
     }
   }
 
@@ -278,20 +273,19 @@ class DB_helper {
       );
       return data;
     } catch (e) {
-      print("Error : $e");
+      print("Get User Error: $e");
       return [];
     }
   }
 
-  Future<List<Map<String, dynamic>>> getCategories() async {
+  Future<List<Map<String, dynamic>>> getCategories(int userid) async {
     try {
       var db = await getDB();
-      // Fetch distinct categories from the myhabit table
       List<Map<String, dynamic>> result = await db.rawQuery(
-        'SELECT DISTINCT $column_category AS name FROM $table_name WHERE $column_category IS NOT NULL',
+        'SELECT DISTINCT $column_category AS name FROM $table_name WHERE $column_category IS NOT NULL AND $foreign_key_user_id = ?',
+        [userid],
       );
 
-      // Define default categories with icons
       const Map<String, IconData> categoryIcons = {
         'Study': Icons.book,
         'Fitness': Icons.fitness_center,
@@ -299,23 +293,18 @@ class DB_helper {
         'Mental Health': Icons.psychology,
       };
 
-      // Convert database results to a set of category names
-      Set<String> dbCategories =
-          result.map((category) => category['name'] as String).toSet();
+      Set<String> dbCategories = result.map((category) => category['name'] as String).toSet();
 
-      // Create a list of categories, starting with default categories
-      List<Map<String, dynamic>> categories =
-          categoryIcons.entries.map((entry) {
-            return {'name': entry.key, 'icon': entry.value};
-          }).toList();
+      List<Map<String, dynamic>> categories = categoryIcons.entries.map((entry) {
+        return {'name': entry.key, 'icon': entry.value};
+      }).toList();
 
-      // Add any additional categories from the database that aren't in the default list
       for (var category in result) {
         String categoryName = category['name'] as String;
         if (!categoryIcons.containsKey(categoryName)) {
           categories.add({
             'name': categoryName,
-            'icon': Icons.category, // Fallback icon for custom categories
+            'icon': Icons.category,
           });
         }
       }
@@ -323,7 +312,6 @@ class DB_helper {
       return categories;
     } catch (e) {
       print("Get Categories Error: $e");
-      // Return default categories on error
       return [
         {'name': 'Study', 'icon': Icons.book},
         {'name': 'Fitness', 'icon': Icons.fitness_center},
@@ -333,7 +321,7 @@ class DB_helper {
     }
   }
 
-  Future<int> getcurrentstreak() async {
+  Future<int> getcurrentstreak(int userid) async {
     try {
       var db = await getDB();
       DateTime now = DateTime.now();
@@ -341,19 +329,20 @@ class DB_helper {
 
       while (true) {
         String currentDate = DateFormat('yyyy-MM-dd').format(now);
-        List<Map<String, dynamic>> logs = await db.query(
-          table_habit_log,
-          where: '$colum_date = ? AND $colum_status = ?',
-          whereArgs: [currentDate, 1],
+        List<Map<String, dynamic>> logs = await db.rawQuery(
+          'SELECT hl.* FROM $table_habit_log hl '
+              'INNER JOIN $table_name h ON hl.$colum_habit_id = h.$colum_id '
+              'WHERE hl.$colum_date = ? AND hl.$colum_status = ? AND h.$foreign_key_user_id = ?',
+          [currentDate, 1, userid],
         );
 
         bool hasCompletedHabit = logs.isNotEmpty;
 
         if (!hasCompletedHabit) {
-          break; // Break if no habits were completed on this day
+          break;
         }
 
-        streak++; // Increment streak if at least one habit was completed
+        streak++;
         now = now.subtract(const Duration(days: 1));
       }
       return streak;
@@ -367,47 +356,38 @@ class DB_helper {
     return currentDate.difference(prevDate).inDays == 1;
   }
 
-  Future<int> getlongeststreak() async {
+  Future<int> getlongeststreak(int userid) async {
     try {
       var db = await getDB();
-      List<Map<String, dynamic>> logs = await db.query(
-        table_habit_log,
-        where: '$colum_status = ?',
-        whereArgs: [1],
-        orderBy: '$colum_date ASC',
+      List<Map<String, dynamic>> logs = await db.rawQuery(
+        'SELECT hl.$colum_date FROM $table_habit_log hl '
+            'INNER JOIN $table_name h ON hl.$colum_habit_id = h.$colum_id '
+            'WHERE hl.$colum_status = ? AND h.$foreign_key_user_id = ? '
+            'ORDER BY hl.$colum_date ASC',
+        [1, userid],
       );
       if (logs.isEmpty) return 0;
-      int currentstrak = 0;
-      int longeststreak = 0;
+      int currentstrak = 1;
+      int longeststreak = 1;
 
-      DateTime? prevDate;
+      DateTime? prevDate = DateTime.tryParse(logs.first[colum_date]);
 
-      // Group logs by date to check if any habit was completed on each day
-      Map<String, List<Map<String, dynamic>>> logsByDate = {};
-      for (var log in logs) {
-        String date = log[colum_date];
-        if (!logsByDate.containsKey(date)) {
-          logsByDate[date] = [];
-        }
-        logsByDate[date]!.add(log);
-      }
-      List<DateTime> completedDates = logsByDate.keys
-          .map((date) => DateTime.parse(date))
-          .toList()
-        ..sort((a, b) => a.compareTo(b));
+      Set<DateTime> uniqueCompletedDates = logs.map((log) => DateTime.parse(log[colum_date])).toSet();
+      List<DateTime> completedDates = uniqueCompletedDates.toList()..sort();
 
-      for (var logDate in completedDates) {
-        if (prevDate == null || _isConsecutive(prevDate!, logDate)) {
+      for (int i = 1; i < completedDates.length; i++) {
+        DateTime logDate = completedDates[i];
+        if (_isConsecutive(prevDate!, logDate)) {
           currentstrak++;
         } else {
-          currentstrak = 1; // Reset streak if not consecutive
+          currentstrak = 1;
         }
         longeststreak = currentstrak > longeststreak ? currentstrak : longeststreak;
         prevDate = logDate;
       }
       return longeststreak;
     } catch (e) {
-      print("get current streak error");
+      print("Get longest streak error: $e");
       return 0;
     }
   }

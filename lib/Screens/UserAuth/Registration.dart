@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:habittracker/Screens/UserAuth/Login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../../database/DB_helper.dart';
 import '../BottomNavbar.dart';
+import '../../theme_provider.dart';
 
 class Registration extends StatefulWidget {
   const Registration({super.key});
@@ -16,11 +18,8 @@ class _RegistationState extends State<Registration> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _obscurePassword = true; // Set to true by default
+  bool _obscurePassword = true;
   DB_helper? dbref;
-
-  final Color startColor = const Color(0xFF667eea);
-  final Color endColor = const Color(0xFF764ba2);
 
   @override
   void initState() {
@@ -42,50 +41,70 @@ class _RegistationState extends State<Registration> {
     String password = _passwordController.text.trim();
 
     if (username.isEmpty || email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please fill all the fields"),
-        backgroundColor: Colors.yellow,
-        behavior: SnackBarBehavior.floating,));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Please fill all the fields"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
 
     try {
-      List<Map<String, dynamic>>? user = await dbref!.getuser(email);
+      List<Map<String, dynamic>> user = await dbref!.getuser(email);
 
       if (user.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("User with this email already exists"),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,),
+          SnackBar(
+            content: const Text("User with this email already exists"),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
         return;
       }
 
-      bool success = await dbref!.adduser(username: username, email: email, password: password);
+      int userId = await dbref!.adduser(username: username, email: email, password: password);
+      bool success = userId != -1; // Convert int to bool
       if (success) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_email', email);
         await prefs.setString("username", username);
+        await prefs.setInt('user_id', userId); // NEW: Save user_id
 
-        print("sharepref email : ${prefs.getString('user_email')}");
-        print("sharepref username : ${prefs.getString('username')}");
+        print("SharedPreferences email: ${prefs.getString('user_email')}");
+        print("SharedPreferences username: ${prefs.getString('username')}");
+        print("SharedPreferences user_id: ${prefs.getInt('user_id')}");
 
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const Bottomnavbar()),
         );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Registration successful"),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to register user"),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,),
+          SnackBar(
+            content: const Text("Failed to register user"),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
     } catch (e) {
-      print("register Error : $e");
+      print("Register Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to register user"),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,),
+        SnackBar(
+          content: const Text("Failed to register user"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -96,10 +115,14 @@ class _RegistationState extends State<Registration> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [startColor, endColor],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -117,18 +140,18 @@ class _RegistationState extends State<Registration> {
                   style: GoogleFonts.poppins(
                     fontSize: screenWidth * 0.08,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.02),
                 Container(
                   padding: EdgeInsets.all(screenWidth * 0.06),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -138,31 +161,31 @@ class _RegistationState extends State<Registration> {
                     children: [
                       TextField(
                         controller: _usernameController,
-                        style: GoogleFonts.poppins(),
+                        style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: 'Username',
-                          labelStyle: GoogleFonts.poppins(color: Colors.grey[600]),
+                          labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: Theme.of(context).cardColor.withOpacity(0.5),
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.02),
                       TextField(
                         controller: _emailController,
-                        style: GoogleFonts.poppins(),
+                        style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: 'Email',
-                          labelStyle: GoogleFonts.poppins(color: Colors.grey[600]),
+                          labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: Theme.of(context).cardColor.withOpacity(0.5),
                         ),
                         keyboardType: TextInputType.emailAddress,
                       ),
@@ -170,20 +193,20 @@ class _RegistationState extends State<Registration> {
                       TextField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: GoogleFonts.poppins(),
+                        style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          labelStyle: GoogleFonts.poppins(color: Colors.grey[600]),
+                          labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: Theme.of(context).cardColor.withOpacity(0.5),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                              color: Colors.grey,
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                             ),
                             onPressed: () {
                               setState(() {
@@ -200,13 +223,16 @@ class _RegistationState extends State<Registration> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
                           gradient: LinearGradient(
-                            colors: [startColor, endColor],
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.secondary,
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: endColor.withOpacity(0.4),
+                              color: Theme.of(context).colorScheme.secondary.withOpacity(0.4),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -223,7 +249,7 @@ class _RegistationState extends State<Registration> {
                                 style: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.05,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                             ),
@@ -241,7 +267,7 @@ class _RegistationState extends State<Registration> {
                   child: Text(
                     "Already have an account? Login",
                     style: GoogleFonts.poppins(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

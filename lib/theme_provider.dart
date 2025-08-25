@@ -68,7 +68,7 @@ class ThemeProvider extends ChangeNotifier {
       primaryColor: const Color(0xFF667eea),
       scaffoldBackgroundColor: Colors.grey[900]!,
       colorScheme: const ColorScheme.dark(
-        primary: Color(0xffa9a9a9),
+        primary: Color(0xff7a7a7a),
           // 0xFF667eea
         secondary: Color(0xff656565),
         // 0xFF764ba2

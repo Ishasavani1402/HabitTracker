@@ -1,9 +1,12 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:habittracker/Screens/UserAuth/Registration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 import '../../database/DB_helper.dart';
 import '../BottomNavbar.dart';
+import '../../theme_provider.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -17,9 +20,6 @@ class _LoginState extends State<Login> {
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
   DB_helper? dbref;
-
-  final Color startColor = const Color(0xFF667eea);
-  final Color endColor = const Color(0xFF764ba2);
 
   @override
   void initState() {
@@ -35,53 +35,83 @@ class _LoginState extends State<Login> {
   }
 
   Future<void> loginUser() async {
-    String? email = _emailController.text.trim();
-    String? password = _passwordController.text.trim();
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+
+    print("Attempting login with email: $email, password: $password"); // Debug
 
     if (email.isEmpty || password.isEmpty) {
+      print("Validation failed: Empty fields"); // Debug
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please fill all the fields"),
-          backgroundColor: Colors.yellow,
-          behavior: SnackBarBehavior.floating,),
+        SnackBar(
+          content: const Text("Please fill all the fields"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
       );
       return;
     }
 
     try {
       List<Map<String, dynamic>> user = await dbref!.getuser(email);
+      print("User data from DB: $user"); // Debug
 
       if (user.isEmpty) {
+        print("No user found with email: $email"); // Debug
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No user found with this email"),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,),
+          SnackBar(
+            content: const Text("No user found with this email"),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
         );
         return;
       }
 
-      if (user.first[DB_helper.colum_password] == password) {
+      // Use correct column name: column_password
+      if (user.first[DB_helper.column_password] == password) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('user_email', email);
-        await prefs.setString('username', user.first[DB_helper.column_username]);
+        await prefs.setString('username', user.first[DB_helper.column_username] ?? 'User');
+        await prefs.setInt('user_id', user.first[DB_helper.column_user_id] as int); // Save user_id
 
-        print("SharedPreferences email: ${prefs.getString('user_email')}");
+        print("SharedPreferences saved: email=${prefs.getString('user_email')}, "
+            "username=${prefs.getString('username')}, user_id=${prefs.getInt('user_id')}"); // Debug
+
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Bottomnavbar()),
+          MaterialPageRoute(builder: (context) => const Bottomnavbar(selectedIndex: 1)),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Login successful"),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
         );
       } else {
+        print("Password mismatch: stored=${user.first[DB_helper.column_password]}, input=$password"); // Debug
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Incorrect password"),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,),
+          SnackBar(
+            content: const Text("Incorrect email or password"),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+          ),
         );
       }
     } catch (e) {
-      print("Login Error: $e");
+      print("Login Error: $e"); // Debug
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to log in"),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,),
+        SnackBar(
+          content: Text("Failed to log in: $e"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
       );
     }
   }
@@ -92,10 +122,14 @@ class _LoginState extends State<Login> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [startColor, endColor],
+            colors: [
+              Theme.of(context).colorScheme.primary.withOpacity(0.8),
+              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -113,7 +147,7 @@ class _LoginState extends State<Login> {
                   style: GoogleFonts.poppins(
                     fontSize: screenWidth * 0.08,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.02),
@@ -122,18 +156,18 @@ class _LoginState extends State<Login> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.poppins(
                     fontSize: screenWidth * 0.04,
-                    color: Colors.white70,
+                    color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.7),
                   ),
                 ),
                 SizedBox(height: screenHeight * 0.04),
                 Container(
                   padding: EdgeInsets.all(screenWidth * 0.06),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -143,16 +177,16 @@ class _LoginState extends State<Login> {
                     children: [
                       TextField(
                         controller: _emailController,
-                        style: GoogleFonts.poppins(),
+                        style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: 'Email',
-                          labelStyle: GoogleFonts.poppins(color: Colors.grey[600]),
+                          labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: Theme.of(context).cardColor.withOpacity(0.5),
                         ),
                         keyboardType: TextInputType.emailAddress,
                       ),
@@ -160,20 +194,20 @@ class _LoginState extends State<Login> {
                       TextField(
                         controller: _passwordController,
                         obscureText: _obscurePassword,
-                        style: GoogleFonts.poppins(),
+                        style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          labelStyle: GoogleFonts.poppins(color: Colors.grey[600]),
+                          labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Colors.grey[100],
+                          fillColor: Theme.of(context).cardColor.withOpacity(0.5),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                              color: Colors.grey,
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                             ),
                             onPressed: () {
                               setState(() {
@@ -190,13 +224,16 @@ class _LoginState extends State<Login> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
                           gradient: LinearGradient(
-                            colors: [startColor, endColor],
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.secondary,
+                            ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: endColor.withOpacity(0.4),
+                              color: Theme.of(context).colorScheme.secondary.withOpacity(0.4),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),
@@ -213,7 +250,7 @@ class _LoginState extends State<Login> {
                                 style: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.05,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                             ),
@@ -231,7 +268,7 @@ class _LoginState extends State<Login> {
                   child: Text(
                     "Don't have an account? Register",
                     style: GoogleFonts.poppins(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

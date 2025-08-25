@@ -1,7 +1,10 @@
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:habittracker/Screens/BottomNavbar.dart';
+import 'package:habittracker/Screens/UserAuth/Login.dart';
 import 'package:habittracker/database/DB_helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Addhabit extends StatefulWidget {
   final int? habitId;
@@ -17,6 +20,7 @@ class Addhabit extends StatefulWidget {
 class _AddhabitState extends State<Addhabit> {
   final TextEditingController _habitController = TextEditingController();
   DB_helper? dbref;
+  int? userId;
 
   @override
   void initState() {
@@ -24,6 +28,28 @@ class _AddhabitState extends State<Addhabit> {
     dbref = DB_helper.getInstance;
     if (widget.habitId != null) {
       _habitController.text = widget.habitName ?? '';
+    }
+    _loadUserId();
+  }
+
+  Future<void> _loadUserId() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    setState(() {
+      userId = pref.getInt('user_id');
+    });
+    if (userId == null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Login()),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("Please log in to continue"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
     }
   }
 
@@ -34,13 +60,26 @@ class _AddhabitState extends State<Addhabit> {
   }
 
   Future<void> _saveHabit() async {
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text("User not logged in"),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     String habitName = _habitController.text.trim();
     if (habitName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text("Please enter a habit name"),
-          backgroundColor: Theme.of(context).colorScheme.error, // Theme-aware error color
+          backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
         ),
       );
       return;
@@ -52,6 +91,7 @@ class _AddhabitState extends State<Addhabit> {
           content: const Text("No category selected"),
           backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
         ),
       );
       return;
@@ -61,6 +101,7 @@ class _AddhabitState extends State<Addhabit> {
     if (widget.habitId == null) {
       // Add new habit
       success = await dbref!.adddata(
+        userId: userId!, // Fixed: Pass userId
         name: habitName,
         category: widget.category!,
         iscomplate: 0,
@@ -69,20 +110,27 @@ class _AddhabitState extends State<Addhabit> {
       // Update existing habit
       success = await dbref!.updatehabitdata(
         id: widget.habitId!,
+        userid: userId!,
         name: habitName,
         iscomplate: 0,
       );
     }
 
     if (success) {
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Bottomnavbar()));
+      // Navigate to HomeScreen
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const Bottomnavbar(selectedIndex: 1)),
+            (route) => route.isFirst,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             widget.habitId == null ? "Habit added successfully" : "Habit updated successfully",
           ),
-          backgroundColor: Theme.of(context).colorScheme.primary, // Theme-aware success color
+          backgroundColor: Theme.of(context).colorScheme.primary,
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
         ),
       );
     } else {
@@ -93,6 +141,7 @@ class _AddhabitState extends State<Addhabit> {
           ),
           backgroundColor: Theme.of(context).colorScheme.error,
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 3),
         ),
       );
     }
@@ -104,8 +153,14 @@ class _AddhabitState extends State<Addhabit> {
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
-      body: Container(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: userId == null
+          ? Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      )
+          : Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -153,7 +208,7 @@ class _AddhabitState extends State<Addhabit> {
                     vertical: screenHeight * 0.03,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).scaffoldBackgroundColor, // Theme-aware background
+                    color: Theme.of(context).scaffoldBackgroundColor,
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(40),
                       topRight: Radius.circular(40),
@@ -194,7 +249,6 @@ class _AddhabitState extends State<Addhabit> {
                         ],
                       ),
                       SizedBox(height: screenHeight * 0.02),
-                      // Habit Name input field
                       Text(
                         "Habit Name",
                         style: GoogleFonts.poppins(
@@ -209,13 +263,14 @@ class _AddhabitState extends State<Addhabit> {
                         style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
                         decoration: InputDecoration(
                           hintText: "Enter habit name (e.g., Read a book)",
-                          hintStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
+                          hintStyle: GoogleFonts.poppins(
+                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5)),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(15),
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: Theme.of(context).cardColor, // Theme-aware fill color
+                          fillColor: Theme.of(context).cardColor,
                           contentPadding: EdgeInsets.symmetric(
                             vertical: screenHeight * 0.02,
                             horizontal: screenWidth * 0.05,
@@ -223,7 +278,6 @@ class _AddhabitState extends State<Addhabit> {
                         ),
                       ),
                       SizedBox(height: screenHeight * 0.025),
-                      // Save/Update button
                       Container(
                         width: double.infinity,
                         height: screenHeight * 0.07,
