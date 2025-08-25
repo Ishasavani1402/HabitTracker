@@ -16,4 +16,6 @@
 -> dart<br>
 -> sqlite database
 
-<img width="183" height="402" alt="splashscreen" src="https://github.com/user-attachments/assets/8ba5b113-ee6b-4dda-b9c7-3fa3018eafc6" />
+<img width="183" height="402" alt="splashscreen" src="https://github.com/user-attachments/assets/8ba5b113-ee6b-4dda-b9c7-3fa3018eafc6" /> 
+<img width="183" height="402" alt="splashscreen" src="https://github.com/user-attachments/assets/a5a5119a-a069-438a-9914-a2dcca26a178" />
+
