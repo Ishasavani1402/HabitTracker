@@ -123,7 +123,11 @@ class _LoginState extends State<Login> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Container(
+      body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+      // physics: NeverScrollableScrollPhysics(),
+      child: Container(
+        height: screenHeight,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -278,6 +282,7 @@ class _LoginState extends State<Login> {
           ),
         ),
       ),
+    )
     );
   }
 }

@@ -246,6 +246,7 @@ class DB_helper {
     required String password,
   }) async {
     try {
+
       var db = await getDB();
       int rowaffect = await db.insert(table_user, {
         column_username: username,

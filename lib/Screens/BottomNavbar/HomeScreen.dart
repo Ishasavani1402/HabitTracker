@@ -1,4 +1,3 @@
-
 // ignore_for_file: unused_local_variable
 
 import 'package:flutter/material.dart';
@@ -19,7 +18,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   DB_helper? dbref;
   List<Map<String, dynamic>> allhabitdata = [];
   List<Map<String, dynamic>> todayhabitlog = [];
@@ -132,10 +132,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   Future<void> _toggleHabitCompletion(Map<String, dynamic> habit) async {
     if (userId == null) return;
     int habitId = habit[DB_helper.colum_id];
-    bool newStatus = todayhabitlog.firstWhere(
-          (log) => log[DB_helper.colum_habit_id] == habitId,
-      orElse: () => {DB_helper.colum_status: 0},
-    )[DB_helper.colum_status] == 0;
+    bool newStatus =
+        todayhabitlog.firstWhere(
+              (log) => log[DB_helper.colum_habit_id] == habitId,
+          orElse: () => {DB_helper.colum_status: 0},
+        )[DB_helper.colum_status] ==
+            0;
 
     bool success = await dbref!.adddailyhabitlog(
       habitid: habitId,
@@ -284,6 +286,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     final categories = groupedHabits.keys.toList();
     final themeProvider = Provider.of<ThemeProvider>(context);
 
+    // This is the polished UI for the HomeScreen widget.
+    // The business logic and state management are unchanged.
     return Scaffold(
       body: userId == null
           ? Center(
@@ -296,21 +300,40 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Polished header section with user greeting and streaks
             Container(
+              width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                    Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context).colorScheme.secondary,
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(screenWidth * 0.08),
+                  bottomRight: Radius.circular(screenWidth * 0.08),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withOpacity(0.3),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
               child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.05,
-                  vertical: screenHeight * 0.02,
+                padding: EdgeInsets.fromLTRB(
+                  screenWidth * 0.06,
+                  screenHeight * 0.06,
+                  screenWidth * 0.06,
+                  screenHeight * 0.03,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -321,7 +344,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: screenHeight * .03),
                             Text(
                               "Hello,",
                               style: GoogleFonts.poppins(
@@ -332,7 +354,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             Text(
                               username ?? "User",
                               style: GoogleFonts.poppins(
-                                fontSize: screenWidth * 0.065,
+                                fontSize: screenWidth * 0.07,
                                 fontWeight: FontWeight.bold,
                                 color: Theme.of(context).colorScheme.onPrimary,
                               ),
@@ -346,10 +368,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 themeProvider.toggleTheme();
                               },
                               icon: Icon(
-                                themeProvider.isDarkMode
-                                    ? Icons.light_mode
-                                    : Icons.dark_mode,
+                                themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
                                 color: Theme.of(context).colorScheme.onPrimary,
+                                size: screenWidth * 0.07,
                               ),
                             ),
                             IconButton(
@@ -357,14 +378,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                               icon: Icon(
                                 Icons.logout,
                                 color: Theme.of(context).colorScheme.onPrimary,
+                                size: screenWidth * 0.07,
                               ),
                             ),
                           ],
                         ),
                       ],
                     ),
-                    SizedBox(height: screenHeight * 0.01),
+                    SizedBox(height: screenHeight * 0.02),
                     Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         FutureBuilder<int>(
                           future: dbref!.getcurrentstreak(userId!),
@@ -374,7 +397,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 "Current Streak: ...",
                                 style: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.04,
-                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
                                 ),
                               );
                             }
@@ -396,7 +419,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                 "Longest Streak: ...",
                                 style: GoogleFonts.poppins(
                                   fontSize: screenWidth * 0.04,
-                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  color: Theme.of(context).colorScheme.onPrimary.withOpacity(0.8),
                                 ),
                               );
                             }
@@ -416,6 +439,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
+
+            // Main content area with habits
             Expanded(
               child: Container(
                 width: screenWidth,
@@ -445,7 +470,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                         Icon(
                           Icons.list_alt_outlined,
                           size: screenWidth * 0.2,
-                          color: Theme.of(context).colorScheme.onSurface,
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                         ),
                         SizedBox(height: screenHeight * 0.02),
                         FadeTransition(
@@ -463,9 +488,9 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                     ),
                   )
                       : ListView.builder(
-                    padding: EdgeInsets.only(
-                      top: screenHeight * 0.03,
-                      bottom: screenHeight * 0.01,
+                    padding: EdgeInsets.symmetric(
+                      vertical: screenHeight * 0.03,
+                      horizontal: screenWidth * 0.05,
                     ),
                     itemCount: categories.length,
                     itemBuilder: (context, index) {
@@ -479,13 +504,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                           children: [
                             Padding(
                               padding: EdgeInsets.symmetric(
-                                horizontal: screenWidth * 0.06,
-                                vertical: screenHeight * 0.01,
+                                vertical: screenHeight * 0.015,
                               ),
                               child: Text(
                                 category,
                                 style: GoogleFonts.poppins(
-                                  fontSize: screenWidth * 0.05,
+                                  fontSize: screenWidth * 0.055,
                                   fontWeight: FontWeight.bold,
                                   color: Theme.of(context).colorScheme.secondary,
                                 ),
@@ -494,31 +518,24 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                             ...habits.map((habit) {
                               int habitId = habit[DB_helper.colum_id];
                               bool isCompletedToday = todayhabitlog.any(
-                                    (log) =>
-                                log[DB_helper.colum_habit_id] == habitId &&
-                                    log[DB_helper.colum_status] == 1,
+                                    (log) => log[DB_helper.colum_habit_id] == habitId && log[DB_helper.colum_status] == 1,
                               );
 
                               return AnimatedContainer(
                                 duration: const Duration(milliseconds: 300),
-                                margin: EdgeInsets.symmetric(
-                                  horizontal: screenWidth * 0.05,
-                                  vertical: screenHeight * 0.005,
-                                ),
+                                curve: Curves.easeIn,
+                                margin: EdgeInsets.only(bottom: screenHeight * 0.015),
                                 decoration: BoxDecoration(
                                   color: isCompletedToday
-                                      ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                      ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
                                       : Theme.of(context).cardColor,
                                   borderRadius: BorderRadius.circular(15),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface
-                                          .withOpacity(0.1),
-                                      spreadRadius: 1,
-                                      blurRadius: 5,
-                                      offset: const Offset(0, 3),
+                                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
+                                      spreadRadius: 0.5,
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
@@ -537,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                           color: isCompletedToday
                                               ? Theme.of(context).colorScheme.primary
                                               : Theme.of(context).colorScheme.onSurface,
-                                          width: 2,
+                                          width: 2.5,
                                         ),
                                         color: isCompletedToday
                                             ? Theme.of(context).colorScheme.primary
@@ -548,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                         color: isCompletedToday
                                             ? Theme.of(context).colorScheme.onPrimary
                                             : Theme.of(context).colorScheme.onSurface,
-                                        size: screenWidth * 0.06,
+                                        size: screenWidth * 0.065,
                                       ),
                                     ),
                                   ),
@@ -571,8 +588,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                         style: GoogleFonts.poppins(
                                           fontSize: screenWidth * 0.035,
                                           color: isCompletedToday
-                                              ? Theme.of(context).colorScheme.primary
-                                              : Theme.of(context).colorScheme.onSurface,
+                                              ? Theme.of(context).colorScheme.primary.withOpacity(0.8)
+                                              : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -585,6 +602,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                         icon: Icon(
                                           Icons.edit,
                                           color: Theme.of(context).colorScheme.primary,
+                                          size: screenWidth * 0.06,
                                         ),
                                         onPressed: () async {
                                           await Navigator.push(
@@ -604,6 +622,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                         icon: Icon(
                                           Icons.delete,
                                           color: Theme.of(context).colorScheme.error,
+                                          size: screenWidth * 0.06,
                                         ),
                                         onPressed: () async {
                                           bool? confirm = await _showDeleteConfirmationDialog(
@@ -619,9 +638,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 SnackBar(
                                                   content: const Text("Habit deleted successfully"),
-                                                  backgroundColor: Theme.of(context)
-                                                      .snackBarTheme
-                                                      .backgroundColor,
+                                                  backgroundColor: Theme.of(context).snackBarTheme.backgroundColor,
                                                   duration: const Duration(seconds: 3),
                                                 ),
                                               );

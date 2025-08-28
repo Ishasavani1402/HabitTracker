@@ -116,167 +116,171 @@ class _RegistationState extends State<Registration> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary.withOpacity(0.8),
-              Theme.of(context).colorScheme.secondary.withOpacity(0.8),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      body: SingleChildScrollView(
+        child:Container(
+          height: screenHeight,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  "Create an Account",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(
-                    fontSize: screenWidth * 0.08,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onPrimary,
+          child: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "Create an Account",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: screenWidth * 0.08,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
                   ),
-                ),
-                SizedBox(height: screenHeight * 0.02),
-                Container(
-                  padding: EdgeInsets.all(screenWidth * 0.06),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: _usernameController,
-                        style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
-                        decoration: InputDecoration(
-                          labelText: 'Username',
-                          labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Theme.of(context).cardColor.withOpacity(0.5),
+                  SizedBox(height: screenHeight * 0.02),
+                  Container(
+                    padding: EdgeInsets.all(screenWidth * 0.06),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
                         ),
-                      ),
-                      SizedBox(height: screenHeight * 0.02),
-                      TextField(
-                        controller: _emailController,
-                        style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
-                        decoration: InputDecoration(
-                          labelText: 'Email',
-                          labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Theme.of(context).cardColor.withOpacity(0.5),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      SizedBox(height: screenHeight * 0.02),
-                      TextField(
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
-                        decoration: InputDecoration(
-                          labelText: 'Password',
-                          labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                            borderSide: BorderSide.none,
-                          ),
-                          filled: true,
-                          fillColor: Theme.of(context).cardColor.withOpacity(0.5),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: _usernameController,
+                          style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
+                          decoration: InputDecoration(
+                            labelText: 'Username',
+                            labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide.none,
                             ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
+                            filled: true,
+                            fillColor: Theme.of(context).cardColor.withOpacity(0.5),
                           ),
                         ),
-                      ),
-                      SizedBox(height: screenHeight * 0.04),
-                      Container(
-                        width: double.infinity,
-                        height: screenHeight * 0.07,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          gradient: LinearGradient(
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.secondary,
+                        SizedBox(height: screenHeight * 0.02),
+                        TextField(
+                          controller: _emailController,
+                          style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Theme.of(context).cardColor.withOpacity(0.5),
+                          ),
+                          keyboardType: TextInputType.emailAddress,
+                        ),
+                        SizedBox(height: screenHeight * 0.02),
+                        TextField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          style: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface),
+                          decoration: InputDecoration(
+                            labelText: 'Password',
+                            labelStyle: GoogleFonts.poppins(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Theme.of(context).cardColor.withOpacity(0.5),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _obscurePassword = !_obscurePassword;
+                                });
+                              },
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: screenHeight * 0.04),
+                        Container(
+                          width: double.infinity,
+                          height: screenHeight * 0.07,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15),
+                            gradient: LinearGradient(
+                              colors: [
+                                Theme.of(context).colorScheme.primary,
+                                Theme.of(context).colorScheme.secondary,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Theme.of(context).colorScheme.secondary.withOpacity(0.4),
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
                             ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(context).colorScheme.secondary.withOpacity(0.4),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: registeruser,
-                            borderRadius: BorderRadius.circular(15),
-                            child: Center(
-                              child: Text(
-                                'Register',
-                                style: GoogleFonts.poppins(
-                                  fontSize: screenWidth * 0.05,
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onPrimary,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: registeruser,
+                              borderRadius: BorderRadius.circular(15),
+                              child: Center(
+                                child: Text(
+                                  'Register',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: screenWidth * 0.05,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onPrimary,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: screenHeight * 0.02),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Login()));
-                  },
-                  child: Text(
-                    "Already have an account? Login",
-                    style: GoogleFonts.poppins(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.w600,
+                      ],
                     ),
                   ),
-                ),
-              ],
+                  SizedBox(height: screenHeight * 0.02),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const Login()));
+                    },
+                    child: Text(
+                      "Already have an account? Login",
+                      style: GoogleFonts.poppins(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
+      )
+
     );
   }
 }
